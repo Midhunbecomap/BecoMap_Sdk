@@ -1,9 +1,12 @@
 package com.becomap.sdk.Network;
 
 import com.becomap.sdk.Model.BuildingResponse;
+import com.becomap.sdk.Model.FloorData;
 import com.becomap.sdk.Model.SdkTokenRequest;
 import com.becomap.sdk.Model.SdkTokenResponse;
 import com.becomap.sdk.Model.SiteResponse;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -25,7 +28,7 @@ public interface ApiService {
     Call<SiteResponse> getSiteDetails(@Path("siteId") String siteId, @Header("Authorization") String token);
 
     @GET("api/v1/sdk/floor/{siteId}/{buildingId}")
-    Call<BuildingResponse> getBuildingDetails(@Path("siteId") String siteId,
-                                              @Path("buildingId") String buildingId,
-                                              @Header("Authorization") String token);
+    Call<List<FloorData>> getBuildingDetails(@Path("siteId") String siteId,
+                                             @Path("buildingId") String buildingId,
+                                             @Header("Authorization") String token);
 }

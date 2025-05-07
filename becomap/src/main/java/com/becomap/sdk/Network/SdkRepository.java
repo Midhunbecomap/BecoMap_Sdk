@@ -6,9 +6,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.becomap.sdk.Model.BuildingResponse;
+import com.becomap.sdk.Model.FloorData;
 import com.becomap.sdk.Model.SdkTokenRequest;
 import com.becomap.sdk.Model.SdkTokenResponse;
 import com.becomap.sdk.Model.SiteResponse;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -56,23 +59,24 @@ public class SdkRepository {
 
         return liveData;
     }
-    public LiveData<BuildingResponse> getBuildingData(String accessToken, String siteId, String buildingId) {
-        MutableLiveData<BuildingResponse> liveData = new MutableLiveData<>();
+    public LiveData<List<FloorData>> getBuildingData(String accessToken, String siteId, String buildingId) {
+        MutableLiveData<List<FloorData>> liveData = new MutableLiveData<>();
 
         apiService.getBuildingDetails(siteId, buildingId, "Bearer " + accessToken)
-                .enqueue(new Callback<BuildingResponse>() {
+                .enqueue(new Callback<List<FloorData>>() {
                     @Override
-                    public void onResponse(Call<BuildingResponse> call, Response<BuildingResponse> response) {
+                    public void onResponse(Call<List<FloorData>> call, Response<List<FloorData>> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             liveData.setValue(response.body());
                         } else {
-                            liveData.setValue(null);  // Error or no data
+                            liveData.setValue(null);
+                            Log.e("fetchBuildingData", "Empty or error response");
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<BuildingResponse> call, Throwable t) {
-                        liveData.setValue(null);  // Network or other error
+                    public void onFailure(Call<List<FloorData>> call, Throwable t) {
+                        liveData.setValue(null);
                         Log.e("fetchBuildingData: Failure", t.getMessage());
                     }
                 });

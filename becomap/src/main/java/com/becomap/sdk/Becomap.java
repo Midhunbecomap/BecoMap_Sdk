@@ -3,14 +3,22 @@ package com.becomap.sdk;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 
+import com.beco.geoshapes.Shape;
+import com.becomap.sdk.Model.ShapeJsonData;
+import com.becomap.sdk.Model.ShapeModel;
 import com.becomap.sdk.Viewmodel.SdkViewModel;
 import com.becomap.sdk.util.TokenCallback;
+import com.google.gson.Gson;
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
 
@@ -25,6 +33,16 @@ import org.maplibre.android.maps.OnMapReadyCallback;
 import org.maplibre.android.style.layers.PropertyFactory;
 import org.maplibre.android.style.layers.SymbolLayer;
 import org.maplibre.android.style.sources.GeoJsonSource;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
 
 public class Becomap {
     private final Context context;
@@ -59,11 +77,49 @@ public class Becomap {
                 double latitude = siteResponse.getLatitude();
                 double longitude = siteResponse.getLongitude();
                 initializeMapWithCoordinates(latitude, longitude);
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    try {
+                        URL url = new URL(siteResponse.getBinaryUrl().getShape());
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setDoInput(true);
+                        conn.connect();
+
+                        InputStream inputStream = conn.getInputStream();
+
+                        Shape.GeoShapesList shapesList = Shape.GeoShapesList.parseFrom(inputStream);
+
+                        List<ShapeModel> shapeModelList = new ArrayList<>();
+                        Gson gson = new Gson();
+
+                        for (Shape.GeoShapes shape : shapesList.getShapesList()) {
+                            ShapeJsonData jsonData = gson.fromJson(shape.getJsonData(), ShapeJsonData.class);
+
+                            ShapeModel shapeModel = new ShapeModel(
+                                    shape.getShapeId(),
+                                    shape.getType(),
+                                    jsonData,
+                                    shape.getFloorId(),
+                                    shape.getSiteId(),
+                                    shape.getLayerId()
+                            );
+
+                            shapeModelList.add(shapeModel);
+                        }
+                        inputStream.close();
+                        conn.disconnect();
+
+                        // Optional: if you want to update UI, post back to main thread
+
+                    } catch (Exception e) {
+                        Log.e("ShapeDownloader", "Error downloading or parsing shapes.bin", e);
+                    }
+                });
+
             } else {
-                // Handle error when site data is not fetched
                 callback.onFailure("Failed to fetch site data");
             }
         });
+
     }
 
     // Initialize the map with latitude and longitude
