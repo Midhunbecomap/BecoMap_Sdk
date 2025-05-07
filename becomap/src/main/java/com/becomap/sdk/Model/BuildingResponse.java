@@ -20,6 +20,7 @@ public class BuildingResponse {
         return buildingName;
     }
 
+
     public void setBuildingName(String buildingName) {
         this.buildingName = buildingName;
     }
