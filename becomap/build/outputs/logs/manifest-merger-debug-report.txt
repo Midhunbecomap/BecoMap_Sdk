@@ -1,16 +1,16 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml:2:13-83
-INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml:2:13-83
+ADDED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml:2:13-83
+INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml:2:13-83
 	package
-		INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml
+		INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml
 	xmlns:android
-		ADDED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml:2:23-81
+		ADDED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml:2:23-81
 uses-sdk
-INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml reason: use-sdk injection requested
-INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml
-INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml
+INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml reason: use-sdk injection requested
+INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml
+INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml
 	android:targetSdkVersion
-		INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml
+		INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml
 	android:minSdkVersion
-		INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap_android_new/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest5360692450102745205.xml
+		INJECTED from /Users/sayone-069/AndroidStudioProjects/becomap-android/becomap/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest4895096581000404274.xml

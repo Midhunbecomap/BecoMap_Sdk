@@ -1,11 +1,14 @@
 package com.example.becomap_android_new;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.becomap.sdk.Becomap;
+import com.becomap.sdk.util.TokenCallback;
 
 public class MainActivity extends AppCompatActivity {
     private Becomap becomap;
@@ -17,7 +20,24 @@ public class MainActivity extends AppCompatActivity {
 
         FrameLayout mapContainer = findViewById(R.id.map_container);
         becomap = new Becomap(this);
-        becomap.initializeMap(mapContainer);
+        becomap.authenticate(
+                "fb3acc6fc0fb6d700fe03d2a66f3a20aa082aa8a",  // clientId
+                "c74d4db106594188ba7993f4c1999144",          // clientSecret
+                this,   // ViewModelStoreOwner (Activity)
+                new TokenCallback() {
+                    @Override
+                    public void onSuccess(String accessToken) {
+                        // ✅ Token received — now load the map
+                        becomap.initializeMap(mapContainer);
+                        Log.e( "onSuccess: ",accessToken );
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Toast.makeText(MainActivity.this, "Auth failed: " + error, Toast.LENGTH_LONG).show();
+                    }
+                }
+        );
     }
 
     @Override
