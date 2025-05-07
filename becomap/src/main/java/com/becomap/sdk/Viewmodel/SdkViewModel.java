@@ -75,7 +75,7 @@ public class SdkViewModel extends ViewModel {
     }
 
     // Fetch building data
-    private void fetchBuildingData(String accessToken, String siteId, String buildingId) {
+    public void fetchBuildingData(String accessToken, String siteId, String buildingId) {
         Log.e("fetchBuildingData: token", accessToken);
         Log.e("fetchBuildingData: siteId", siteId);
         Log.e("fetchBuildingData: buildingId", buildingId);

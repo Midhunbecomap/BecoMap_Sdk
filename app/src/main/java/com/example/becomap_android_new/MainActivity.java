@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.becomap.sdk.Becomap;
+import com.becomap.sdk.Model.FloorData;
 import com.becomap.sdk.util.TokenCallback;
 
 public class MainActivity extends AppCompatActivity {
@@ -18,8 +19,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize views
         FrameLayout mapContainer = findViewById(R.id.map_container);
+
+        // Initialize Becomap
         becomap = new Becomap(this);
+        
+        // Set floor selection listener
+        becomap.setOnFloorSelectedListener(selectedFloor -> {
+            // Handle floor selection here
+            Log.d("MainActivity", "Selected floor: " + selectedFloor.getShortName());
+        });
+
         becomap.authenticate(
                 "fb3acc6fc0fb6d700fe03d2a66f3a20aa082aa8a",  // clientId
                 "c74d4db106594188ba7993f4c1999144",          // clientSecret
@@ -29,7 +40,10 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(String accessToken) {
                         // ✅ Token received — now load the map
                         becomap.initializeMap(mapContainer);
-                        Log.e( "onSuccess: ",accessToken );
+                        Log.e("onSuccess: ", accessToken);
+                        
+                        // Fetch building data after successful authentication
+                        fetchBuildingData();
                     }
 
                     @Override
@@ -38,6 +52,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    private void fetchBuildingData() {
+        // Replace these with your actual site and building IDs
+        String siteId = "your_site_id";
+        String buildingId = "your_building_id";
+        
+        becomap.fetchFloorData(siteId, buildingId);
     }
 
     @Override
