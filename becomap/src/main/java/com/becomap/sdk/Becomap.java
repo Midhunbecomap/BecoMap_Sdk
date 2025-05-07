@@ -38,9 +38,15 @@ import org.maplibre.android.geometry.LatLng;
 import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.MapView;
 import org.maplibre.android.maps.OnMapReadyCallback;
+import org.maplibre.android.style.expressions.Expression;
+import org.maplibre.android.style.layers.FillLayer;
 import org.maplibre.android.style.layers.PropertyFactory;
 import org.maplibre.android.style.layers.SymbolLayer;
 import org.maplibre.android.style.sources.GeoJsonSource;
+import org.maplibre.geojson.Feature;
+import org.maplibre.geojson.FeatureCollection;
+import org.maplibre.geojson.Point;
+import org.maplibre.geojson.Polygon;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,10 +66,12 @@ public class Becomap {
     private String accessToken;
     private SdkViewModel sdkViewModel;
     private List<FloorData> floorDataList = new ArrayList<>();
+    private List<ShapeModel> shapeModelList = new ArrayList<>();
     private OnFloorDataListener onFloorDataListener;
     private Spinner floorSpinner;
     private OnFloorSelectedListener onFloorSelectedListener;
     private ViewGroup rootContainer;
+    private boolean isInitialSelection = true;
 
     public interface OnFloorDataListener {
         void onFloorDataReceived(List<FloorData> floors);
@@ -108,7 +116,7 @@ public class Becomap {
         floorSpinner.setLayoutParams(params);
 
         // Set background and padding for better visibility
-        floorSpinner.setBackgroundResource(android.R.drawable.btn_dropdown);
+        floorSpinner.setBackgroundColor(Color.WHITE);
         floorSpinner.setPadding(16, 8, 16, 8);
 
         // Add spinner to the container
@@ -167,6 +175,175 @@ public class Becomap {
         Log.d("Becomap", "Spinner created and added to container");
     }
 
+    private void drawShapesOnMap(List<ShapeModel> shapes) {
+        if (mapLibreMap == null) {
+            Log.e("Becomap", "Map is not initialized");
+            return;
+        }
+
+        if (shapes == null || shapes.isEmpty()) {
+            Log.e("Becomap", "No shapes provided to draw");
+            return;
+        }
+
+        mapLibreMap.getStyle(style -> {
+            // Remove existing shape layers if any
+            if (style.getLayer("shape-layer") != null) {
+                style.removeLayer("shape-layer");
+            }
+            if (style.getSource("shape-source") != null) {
+                style.removeSource("shape-source");
+            }
+
+            // Create GeoJSON features from shapes
+            List<Feature> features = new ArrayList<>();
+            int validShapes = 0;
+            int invalidShapes = 0;
+
+            for (ShapeModel shape : shapes) {
+                try {
+                    // Get the JSON data from ShapeJsonData
+                    ShapeJsonData jsonData = shape.getJsonData();
+                    if (jsonData != null && jsonData.getGeometry() != null) {
+                        Feature feature = null;
+                        String geometryType = jsonData.getGeometry().getType();
+                        
+                        if ("Point".equals(geometryType)) {
+                            // Handle Point geometry
+                            Object coords = jsonData.getGeometry().getCoordinates();
+                            if (coords instanceof List) {
+                                List<?> pointCoords = (List<?>) coords;
+                                if (!pointCoords.isEmpty() && pointCoords.get(0) instanceof Number) {
+                                    // For Point geometry, coordinates are [longitude, latitude]
+                                    double longitude = ((Number) pointCoords.get(0)).doubleValue();
+                                    double latitude = ((Number) pointCoords.get(1)).doubleValue();
+                                    
+                                    // Create a circle around the point
+                                    double radius = 0.0001; // Adjust this value to change circle size
+                                    List<List<Point>> circlePoints = createCircle(longitude, latitude, radius);
+                                    feature = Feature.fromGeometry(Polygon.fromLngLats(circlePoints));
+                                }
+                            }
+                        } else if ("Polygon".equals(geometryType)) {
+                            // Handle Polygon geometry
+                            Object coords = jsonData.getGeometry().getCoordinates();
+                            if (coords instanceof List) {
+                                List<?> allRings = (List<?>) coords;
+                                if (!allRings.isEmpty() && allRings.get(0) instanceof List) {
+                                    List<?> ring = (List<?>) allRings.get(0);
+                                    List<List<Point>> polygonPoints = new ArrayList<>();
+                                    List<Point> points = new ArrayList<>();
+                                    
+                                    for (Object coord : ring) {
+                                        if (coord instanceof List) {
+                                            List<?> point = (List<?>) coord;
+                                            if (point.size() >= 2 && point.get(0) instanceof Number && point.get(1) instanceof Number) {
+                                                double longitude = ((Number) point.get(0)).doubleValue();
+                                                double latitude = ((Number) point.get(1)).doubleValue();
+                                                points.add(Point.fromLngLat(longitude, latitude));
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (!points.isEmpty()) {
+                                        polygonPoints.add(points);
+                                        feature = Feature.fromGeometry(Polygon.fromLngLats(polygonPoints));
+                                    }
+                                }
+                            }
+                        }
+
+                        if (feature != null) {
+                            // Add properties to the feature
+                            feature.addStringProperty("shapeId", shape.getShapeId());
+                            feature.addStringProperty("type", shape.getType());
+                            feature.addStringProperty("floorId", shape.getFloorId());
+                            feature.addStringProperty("layerId", shape.getLayerId());
+
+                            // Add color and height properties from shapeProperties
+                            if (jsonData.getProperties() != null && 
+                                jsonData.getProperties().getShapeProperties() != null) {
+                                ShapeJsonData.ShapeProperties shapeProps = jsonData.getProperties().getShapeProperties();
+                                double height = shapeProps.getHeight();
+                                String color = shapeProps.getColor();
+                                double opacity = shapeProps.getOpacity();
+                                
+                                // Scale up the height for better visibility (multiply by 10)
+                                height = Math.max(height * 10, 1.0); // Ensure minimum height of 1.0
+                                
+                                feature.addNumberProperty("height", height);
+                                feature.addStringProperty("color", color);
+                                feature.addNumberProperty("opacity", opacity);
+                                
+                                Log.d("Becomap", "Shape " + shape.getType() + " height: " + height);
+                            } else {
+                                Log.w("Becomap", "Shape " + shape.getShapeId() + " has no height properties");
+                            }
+                            
+                            features.add(feature);
+                            validShapes++;
+                            Log.d("Becomap", "Added shape: " + shape.getShapeId() + " of type: " + geometryType);
+                        } else {
+                            invalidShapes++;
+                            Log.w("Becomap", "Could not create feature for shape: " + shape.getShapeId());
+                        }
+                    } else {
+                        invalidShapes++;
+                        Log.w("Becomap", "Invalid JSON data for shape: " + shape.getShapeId());
+                    }
+                } catch (Exception e) {
+                    invalidShapes++;
+                    Log.e("Becomap", "Error converting shape to GeoJSON: " + e.getMessage());
+                }
+            }
+
+            Log.d("Becomap", "Processed shapes - Valid: " + validShapes + ", Invalid: " + invalidShapes);
+
+            if (!features.isEmpty()) {
+                // Create FeatureCollection
+                FeatureCollection featureCollection = FeatureCollection.fromFeatures(features);
+                String geoJson = featureCollection.toJson();
+
+                // Add source
+                style.addSource(new GeoJsonSource("shape-source", geoJson));
+
+                // Add 3D fill layer with extrusion
+                FillLayer shapeLayer = new FillLayer("shape-layer", "shape-source")
+                        .withProperties(
+                                PropertyFactory.fillColor(Expression.get("color")),
+                                PropertyFactory.fillOpacity(Expression.get("opacity")),
+                                PropertyFactory.fillOutlineColor(Expression.get("color")),
+                                PropertyFactory.fillExtrusionHeight(Expression.get("height")),
+                                PropertyFactory.fillExtrusionBase(0f),
+                                PropertyFactory.fillExtrusionOpacity(Expression.get("opacity")),
+                                PropertyFactory.fillExtrusionVerticalGradient(Expression.literal(new Float[]{0.0f, 1.0f})),
+                                PropertyFactory.fillExtrusionTranslate(new Float[]{0f, 0f, 0f})
+                        );
+
+                style.addLayer(shapeLayer);
+                Log.d("Becomap", "Added " + features.size() + " 3D shapes to the map");
+            } else {
+                Log.e("Becomap", "No valid features to add to the map");
+            }
+        });
+    }
+
+    private List<List<Point>> createCircle(double centerLng, double centerLat, double radius) {
+        List<Point> points = new ArrayList<>();
+        int segments = 32; // Number of points in the circle
+        
+        for (int i = 0; i <= segments; i++) {
+            double angle = (2 * Math.PI * i) / segments;
+            double x = centerLng + (radius * Math.cos(angle));
+            double y = centerLat + (radius * Math.sin(angle));
+            points.add(Point.fromLngLat(x, y));
+        }
+        
+        List<List<Point>> result = new ArrayList<>();
+        result.add(points);
+        return result;
+    }
+
     private void updateFloorSpinner() {
         if (floorSpinner == null) return;
 
@@ -207,11 +384,39 @@ public class Becomap {
         floorSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if (floorDataList.isEmpty() || position >= floorDataList.size()) {
+                    Log.e("onItemSelected: ", "floorDataList is empty");
+                    return;
+                }
+
                 FloorData selectedFloor = floorDataList.get(position);
                 if (onFloorSelectedListener != null) {
                     onFloorSelectedListener.onFloorSelected(selectedFloor);
                 }
-                Log.d("FloorSelection", "Selected floor: " + selectedFloor.getShortName());
+                
+                // Filter shapes for the selected floor
+                String selectedFloorId = selectedFloor.getFloorId();
+                List<ShapeModel> floorShapes = new ArrayList<>();
+                for (ShapeModel shape : shapeModelList) {
+                    if (shape.getFloorId().equals(selectedFloorId)) {
+                        floorShapes.add(shape);
+                        Log.d("FloorShapes", "Found shape for floor " + selectedFloorId + 
+                            ": Shape ID=" + shape.getShapeId() + 
+                            ", Type=" + shape.getType() + 
+                            ", Layer ID=" + shape.getLayerId());
+                    }
+                }
+                
+                Log.d("FloorSelection", "Selected floor: " + selectedFloor.getShortName() + 
+                    ", Found " + floorShapes.size() + " shapes for this floor");
+
+                // Draw the shapes on the map
+                drawShapesOnMap(floorShapes);
+
+                // Reset the initial selection flag after first selection
+                if (isInitialSelection) {
+                    isInitialSelection = false;
+                }
             }
 
             @Override
@@ -219,6 +424,13 @@ public class Becomap {
                 // Handle no selection
             }
         });
+
+        // Force initial selection
+        if (!floorDataList.isEmpty()) {
+            Log.d("FloorSelection", "Forcing initial selection");
+            isInitialSelection = true;
+            floorSpinner.setSelection(0, true);
+        }
     }
 
     public void fetchFloorData(String siteId, String buildingId) {
@@ -282,7 +494,7 @@ public class Becomap {
 
                         Shape.GeoShapesList shapesList = Shape.GeoShapesList.parseFrom(inputStream);
 
-                        List<ShapeModel> shapeModelList = new ArrayList<>();
+                        shapeModelList.clear(); // Clear existing shapes
                         Gson gson = new Gson();
 
                         for (Shape.GeoShapes shape : shapesList.getShapesList()) {
@@ -307,6 +519,14 @@ public class Becomap {
                         inputStream.close();
                         conn.disconnect();
 
+                        // After shapes are loaded, trigger floor selection on main thread
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            if (floorSpinner != null && !floorDataList.isEmpty()) {
+                                Log.d("FloorSelection", "Triggering selection after shapes loaded");
+                                updateFloorSpinner(); // This will handle the initial selection
+                            }
+                        });
+
                     } catch (Exception e) {
                         Log.e("ShapeDownloader", "Error downloading or parsing shapes.bin", e);
                     }
@@ -325,29 +545,14 @@ public class Becomap {
 
             mapLibreMap.setCameraPosition(new CameraPosition.Builder()
                     .target(location)
-                    .zoom(13)
+                    .zoom(17)
+                    .tilt(45) // Add tilt for 3D view
+                    .bearing(0) // Add bearing for orientation
                     .build());
 
             // Ensure style is loaded before adding symbol
             mapLibreMap.getStyle(style -> {
-                // Add the marker icon to the style
-                style.addImage("marker-icon-id", BitmapFactory.decodeResource(context.getResources(), org.maplibre.android.R.drawable.maplibre_marker_icon_default));
-
-                // Create a GeoJSON source for the marker
-                String geoJson = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[" + longitude + "," + latitude + "]}}]}";
-
-                // Add the GeoJSON source to the style
-                style.addSource(new GeoJsonSource("marker-source", geoJson));
-
-                // Create a SymbolLayer to display the GeoJSON source
-                SymbolLayer symbolLayer = new SymbolLayer("marker-layer", "marker-source")
-                        .withProperties(
-                                PropertyFactory.iconImage("marker-icon-id"), // Icon for the marker
-                                PropertyFactory.iconSize(1.0f) // Icon size
-                        );
-
-                // Add the SymbolLayer to the map
-                style.addLayer(symbolLayer);
+                Log.d("Becomap", "Map initialized at location: " + latitude + "," + longitude);
             });
         }
     }
@@ -396,7 +601,15 @@ public class Becomap {
             @Override
             public void onMapReady(MapLibreMap map) {
                 mapLibreMap = map;
-                map.setStyle(DEFAULT_STYLE_URL);
+                map.setStyle(DEFAULT_STYLE_URL, style -> {
+                    // Set initial camera position with tilt
+                    map.setCameraPosition(new CameraPosition.Builder()
+                        .zoom(17)
+                        .tilt(45)
+                        .bearing(0)
+                        .build());
+                });
+                
                 Log.d("Becomap", "Map initialized with style: " + DEFAULT_STYLE_URL);
             }
         });
@@ -408,26 +621,26 @@ public class Becomap {
     }
 
     // Method to initialize map with a custom style
-    public void initializeMap(ViewGroup container, String styleUrl) {
-        if (container == null) throw new IllegalArgumentException("Container cannot be null");
-
-        if (styleUrl == null || styleUrl.trim().isEmpty()) {
-            styleUrl = DEFAULT_STYLE_URL;
-        }
-
-        final String finalStyleUrl = styleUrl;
-
-        mapView = new MapView(context);
-        container.addView(mapView);
-
-        mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(MapLibreMap map) {
-                mapLibreMap = map;
-                map.setStyle(finalStyleUrl);
-            }
-        });
-    }
+//    public void initializeMap(ViewGroup container, String styleUrl) {
+//        if (container == null) throw new IllegalArgumentException("Container cannot be null");
+//
+//        if (styleUrl == null || styleUrl.trim().isEmpty()) {
+//            styleUrl = DEFAULT_STYLE_URL;
+//        }
+//
+//        final String finalStyleUrl = styleUrl;
+//
+//        mapView = new MapView(context);
+//        container.addView(mapView);
+//
+//        mapView.getMapAsync(new OnMapReadyCallback() {
+//            @Override
+//            public void onMapReady(MapLibreMap map) {
+//                mapLibreMap = map;
+//                map.setStyle(finalStyleUrl);
+//            }
+//        });
+//    }
 
     // Lifecycle methods
     public void onStart() { if (mapView != null) mapView.onStart(); }

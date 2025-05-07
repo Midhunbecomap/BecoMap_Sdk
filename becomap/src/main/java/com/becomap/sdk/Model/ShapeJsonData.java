@@ -186,7 +186,7 @@ public class ShapeJsonData {
 
     public static class Geometry {
         private String type;
-        private List<List<List<Double>>> coordinates;
+        private Object coordinates;
 
         public String getType() {
             return type;
@@ -196,11 +196,11 @@ public class ShapeJsonData {
             this.type = type;
         }
 
-        public List<List<List<Double>>> getCoordinates() {
+        public Object getCoordinates() {
             return coordinates;
         }
 
-        public void setCoordinates(List<List<List<Double>>> coordinates) {
+        public void setCoordinates(Object coordinates) {
             this.coordinates = coordinates;
         }
     }
