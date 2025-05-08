@@ -48,7 +48,7 @@ public class SdkViewModel extends ViewModel {
                     if (response != null) {
                         sdkTokenResponseLiveData.setValue(response);
                         if (response.getAccessToken() != null) {
-                            fetchSiteData(response.getAccessToken(), "67613c2a487f0072644c4db8");
+                            fetchSiteData(response.getAccessToken(), "67dcf5dd2f21c64e3225254f");
                         } else {
                             errorLiveData.setValue("Token generation failed.");
                         }

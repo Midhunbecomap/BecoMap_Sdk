@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.view.View;
 import android.widget.TextView;
@@ -39,7 +40,7 @@ import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.MapView;
 import org.maplibre.android.maps.OnMapReadyCallback;
 import org.maplibre.android.style.expressions.Expression;
-import org.maplibre.android.style.layers.FillLayer;
+import org.maplibre.android.style.layers.FillExtrusionLayer;
 import org.maplibre.android.style.layers.PropertyFactory;
 import org.maplibre.android.style.layers.SymbolLayer;
 import org.maplibre.android.style.sources.GeoJsonSource;
@@ -200,92 +201,109 @@ public class Becomap {
             int validShapes = 0;
             int invalidShapes = 0;
 
+            // Variables to track bounds
+            double minLat = Double.MAX_VALUE;
+            double maxLat = Double.MIN_VALUE;
+            double minLng = Double.MAX_VALUE;
+            double maxLng = Double.MIN_VALUE;
+
             for (ShapeModel shape : shapes) {
                 try {
                     // Get the JSON data from ShapeJsonData
                     ShapeJsonData jsonData = shape.getJsonData();
                     if (jsonData != null && jsonData.getGeometry() != null) {
-                        Feature feature = null;
-                        String geometryType = jsonData.getGeometry().getType();
-                        
-                        if ("Point".equals(geometryType)) {
-                            // Handle Point geometry
-                            Object coords = jsonData.getGeometry().getCoordinates();
-                            if (coords instanceof List) {
-                                List<?> pointCoords = (List<?>) coords;
-                                if (!pointCoords.isEmpty() && pointCoords.get(0) instanceof Number) {
-                                    // For Point geometry, coordinates are [longitude, latitude]
-                                    double longitude = ((Number) pointCoords.get(0)).doubleValue();
-                                    double latitude = ((Number) pointCoords.get(1)).doubleValue();
-                                    
-                                    // Create a circle around the point
-                                    double radius = 0.0001; // Adjust this value to change circle size
-                                    List<List<Point>> circlePoints = createCircle(longitude, latitude, radius);
-                                    feature = Feature.fromGeometry(Polygon.fromLngLats(circlePoints));
+                        // Check if shape has label property
+                        if (jsonData.getProperties() != null && 
+                            jsonData.getProperties().getShapeProperties() != null &&
+                            jsonData.getProperties().getShapeProperties().getLabel() != null) {
+                            
+                            Feature feature = null;
+                            String geometryType = jsonData.getGeometry().getType();
+                            
+                            if ("Point".equals(geometryType)) {
+                                // Handle Point geometry
+                                Object coords = jsonData.getGeometry().getCoordinates();
+                                if (coords instanceof List) {
+                                    List<?> pointCoords = (List<?>) coords;
+                                    if (!pointCoords.isEmpty() && pointCoords.get(0) instanceof Number) {
+                                        // For Point geometry, coordinates are [longitude, latitude]
+                                        double longitude = ((Number) pointCoords.get(0)).doubleValue();
+                                        double latitude = ((Number) pointCoords.get(1)).doubleValue();
+                                        
+                                        // Update bounds
+                                        minLat = Math.min(minLat, latitude);
+                                        maxLat = Math.max(maxLat, latitude);
+                                        minLng = Math.min(minLng, longitude);
+                                        maxLng = Math.max(maxLng, longitude);
+                                        
+                                        // Create a circle around the point
+                                        double radius = 0.0001; // Adjust this value to change circle size
+                                        List<List<Point>> circlePoints = createCircle(longitude, latitude, radius);
+                                        feature = Feature.fromGeometry(Polygon.fromLngLats(circlePoints));
+                                    }
                                 }
-                            }
-                        } else if ("Polygon".equals(geometryType)) {
-                            // Handle Polygon geometry
-                            Object coords = jsonData.getGeometry().getCoordinates();
-                            if (coords instanceof List) {
-                                List<?> allRings = (List<?>) coords;
-                                if (!allRings.isEmpty() && allRings.get(0) instanceof List) {
-                                    List<?> ring = (List<?>) allRings.get(0);
-                                    List<List<Point>> polygonPoints = new ArrayList<>();
-                                    List<Point> points = new ArrayList<>();
-                                    
-                                    for (Object coord : ring) {
-                                        if (coord instanceof List) {
-                                            List<?> point = (List<?>) coord;
-                                            if (point.size() >= 2 && point.get(0) instanceof Number && point.get(1) instanceof Number) {
-                                                double longitude = ((Number) point.get(0)).doubleValue();
-                                                double latitude = ((Number) point.get(1)).doubleValue();
-                                                points.add(Point.fromLngLat(longitude, latitude));
+                            } else if ("Polygon".equals(geometryType)) {
+                                // Handle Polygon geometry
+                                Object coords = jsonData.getGeometry().getCoordinates();
+                                if (coords instanceof List) {
+                                    List<?> allRings = (List<?>) coords;
+                                    if (!allRings.isEmpty() && allRings.get(0) instanceof List) {
+                                        List<?> ring = (List<?>) allRings.get(0);
+                                        List<List<Point>> polygonPoints = new ArrayList<>();
+                                        List<Point> points = new ArrayList<>();
+                                        
+                                        for (Object coord : ring) {
+                                            if (coord instanceof List) {
+                                                List<?> point = (List<?>) coord;
+                                                if (point.size() >= 2 && point.get(0) instanceof Number && point.get(1) instanceof Number) {
+                                                    double longitude = ((Number) point.get(0)).doubleValue();
+                                                    double latitude = ((Number) point.get(1)).doubleValue();
+                                                    
+                                                    // Update bounds
+                                                    minLat = Math.min(minLat, latitude);
+                                                    maxLat = Math.max(maxLat, latitude);
+                                                    minLng = Math.min(minLng, longitude);
+                                                    maxLng = Math.max(maxLng, longitude);
+                                                    
+                                                    points.add(Point.fromLngLat(longitude, latitude));
+                                                }
                                             }
                                         }
-                                    }
-                                    
-                                    if (!points.isEmpty()) {
-                                        polygonPoints.add(points);
-                                        feature = Feature.fromGeometry(Polygon.fromLngLats(polygonPoints));
+                                        
+                                        if (!points.isEmpty()) {
+                                            polygonPoints.add(points);
+                                            feature = Feature.fromGeometry(Polygon.fromLngLats(polygonPoints));
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (feature != null) {
-                            // Add properties to the feature
-                            feature.addStringProperty("shapeId", shape.getShapeId());
-                            feature.addStringProperty("type", shape.getType());
-                            feature.addStringProperty("floorId", shape.getFloorId());
-                            feature.addStringProperty("layerId", shape.getLayerId());
+                            if (feature != null) {
+                                // Add properties to the feature
+                                feature.addStringProperty("shapeId", shape.getShapeId());
+                                feature.addStringProperty("type", shape.getType());
+                                feature.addStringProperty("floorId", shape.getFloorId());
+                                feature.addStringProperty("layerId", shape.getLayerId());
 
-                            // Add color and height properties from shapeProperties
-                            if (jsonData.getProperties() != null && 
-                                jsonData.getProperties().getShapeProperties() != null) {
+                                // Add color and height properties from shapeProperties
                                 ShapeJsonData.ShapeProperties shapeProps = jsonData.getProperties().getShapeProperties();
                                 double height = shapeProps.getHeight();
                                 String color = shapeProps.getColor();
                                 double opacity = shapeProps.getOpacity();
                                 
-                                // Scale up the height for better visibility (multiply by 10)
-                                height = Math.max(height * 10, 1.0); // Ensure minimum height of 1.0
-                                
                                 feature.addNumberProperty("height", height);
                                 feature.addStringProperty("color", color);
                                 feature.addNumberProperty("opacity", opacity);
                                 
-                                Log.d("Becomap", "Shape " + shape.getType() + " height: " + height);
+                                features.add(feature);
+                                validShapes++;
+                                Log.d("Becomap", "Added shape with label: " + shape.getShapeId() + " of type: " + geometryType);
                             } else {
-                                Log.w("Becomap", "Shape " + shape.getShapeId() + " has no height properties");
+                                invalidShapes++;
+                                Log.w("Becomap", "Could not create feature for shape: " + shape.getShapeId());
                             }
-                            
-                            features.add(feature);
-                            validShapes++;
-                            Log.d("Becomap", "Added shape: " + shape.getShapeId() + " of type: " + geometryType);
                         } else {
-                            invalidShapes++;
-                            Log.w("Becomap", "Could not create feature for shape: " + shape.getShapeId());
+                            Log.d("Becomap", "Skipping shape without label: " + shape.getShapeId());
                         }
                     } else {
                         invalidShapes++;
@@ -308,11 +326,9 @@ public class Becomap {
                 style.addSource(new GeoJsonSource("shape-source", geoJson));
 
                 // Add 3D fill layer with extrusion
-                FillLayer shapeLayer = new FillLayer("shape-layer", "shape-source")
+                FillExtrusionLayer shapeLayer = new FillExtrusionLayer("shape-layer", "shape-source")
                         .withProperties(
-                                PropertyFactory.fillColor(Expression.get("color")),
-                                PropertyFactory.fillOpacity(Expression.get("opacity")),
-                                PropertyFactory.fillOutlineColor(Expression.get("color")),
+                                PropertyFactory.fillExtrusionColor(Expression.get("color")),
                                 PropertyFactory.fillExtrusionHeight(Expression.get("height")),
                                 PropertyFactory.fillExtrusionBase(0f),
                                 PropertyFactory.fillExtrusionOpacity(Expression.get("opacity")),
@@ -322,6 +338,37 @@ public class Becomap {
 
                 style.addLayer(shapeLayer);
                 Log.d("Becomap", "Added " + features.size() + " 3D shapes to the map");
+
+                // Calculate center point and zoom level
+                if (minLat != Double.MAX_VALUE && maxLat != Double.MIN_VALUE &&
+                    minLng != Double.MAX_VALUE && maxLng != Double.MIN_VALUE) {
+                    
+                    // Calculate center point
+                    double centerLat = (minLat + maxLat) / 2;
+                    double centerLng = (minLng + maxLng) / 2;
+                    
+                    // Calculate zoom level based on bounds
+                    double latDelta = maxLat - minLat;
+                    double lngDelta = maxLng - minLng;
+                    double maxDelta = Math.max(latDelta, lngDelta);
+                    
+                    // Calculate zoom level (adjust the multiplier to control zoom level)
+                    double zoomLevel = Math.log(360 / maxDelta) / Math.log(2);
+                    
+                    // Add some padding to the zoom level
+                    zoomLevel = Math.min(zoomLevel - 0.5, 20.0);
+                    
+                    // Set camera position
+                    mapLibreMap.setCameraPosition(new CameraPosition.Builder()
+                            .target(new LatLng(centerLat, centerLng))
+                            .zoom(zoomLevel)
+                            .tilt(45)
+                            .bearing(0)
+                            .build());
+                    
+                    Log.d("Becomap", "Set camera position - Center: " + centerLat + "," + centerLng + 
+                          ", Zoom: " + zoomLevel);
+                }
             } else {
                 Log.e("Becomap", "No valid features to add to the map");
             }
@@ -580,7 +627,7 @@ public class Becomap {
         
         // Add map view to container
         container.addView(mapView);
-        
+
         // Set up map view constraints
         if (container instanceof ConstraintLayout) {
             ConstraintSet constraintSet = new ConstraintSet();

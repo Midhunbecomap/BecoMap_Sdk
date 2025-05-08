@@ -32,8 +32,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         becomap.authenticate(
-                "fb3acc6fc0fb6d700fe03d2a66f3a20aa082aa8a",  // clientId
-                "c74d4db106594188ba7993f4c1999144",          // clientSecret
+                "c079dfa3a77dad13351cfacd95841c2c2780fe08",  // clientId
+                "f62a59675b2a47ddb75f1f994d88e653",          // clientSecret
                 this,   // ViewModelStoreOwner (Activity)
                 new TokenCallback() {
                     @Override
