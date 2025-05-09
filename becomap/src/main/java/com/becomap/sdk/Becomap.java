@@ -107,7 +107,7 @@ public class Becomap {
         // Create the spinner
         floorSpinner = new Spinner(context);
         floorSpinner.setId(ViewGroup.generateViewId());
-        
+
         // Set spinner layout parameters
         ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -127,11 +127,11 @@ public class Becomap {
         if (rootContainer instanceof ConstraintLayout) {
             ConstraintSet constraintSet = new ConstraintSet();
             constraintSet.clone((ConstraintLayout) rootContainer);
-            
+
             // Connect spinner to parent
             constraintSet.connect(floorSpinner.getId(), ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START);
             constraintSet.connect(floorSpinner.getId(), ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
-            
+
             // Apply constraints
             constraintSet.applyTo((ConstraintLayout) rootContainer);
         } else {
@@ -140,11 +140,11 @@ public class Becomap {
 
         // Make sure spinner is visible
         floorSpinner.setVisibility(View.VISIBLE);
-        
+
         // Add a temporary item to make the spinner visible
         List<String> tempList = new ArrayList<>();
         tempList.add("Loading floors...");
-        
+
         // Create custom adapter with black text color and white background
         ArrayAdapter<String> tempAdapter = new ArrayAdapter<String>(
                 context,
@@ -169,10 +169,10 @@ public class Becomap {
                 return view;
             }
         };
-        
+
         tempAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         floorSpinner.setAdapter(tempAdapter);
-        
+
         Log.d("Becomap", "Spinner created and added to container");
     }
 
@@ -213,13 +213,13 @@ public class Becomap {
                     ShapeJsonData jsonData = shape.getJsonData();
                     if (jsonData != null && jsonData.getGeometry() != null) {
                         // Check if shape has label property
-                        if (jsonData.getProperties() != null && 
-                            jsonData.getProperties().getShapeProperties() != null &&
-                            jsonData.getProperties().getShapeProperties().getLabel() != null) {
-                            
+                        if (jsonData.getProperties() != null &&
+                                jsonData.getProperties().getShapeProperties() != null &&
+                                jsonData.getProperties().getShapeProperties().getLabel() != null) {
+
                             Feature feature = null;
                             String geometryType = jsonData.getGeometry().getType();
-                            
+
                             if ("Point".equals(geometryType)) {
                                 // Handle Point geometry
                                 Object coords = jsonData.getGeometry().getCoordinates();
@@ -229,13 +229,13 @@ public class Becomap {
                                         // For Point geometry, coordinates are [longitude, latitude]
                                         double longitude = ((Number) pointCoords.get(0)).doubleValue();
                                         double latitude = ((Number) pointCoords.get(1)).doubleValue();
-                                        
+
                                         // Update bounds
                                         minLat = Math.min(minLat, latitude);
                                         maxLat = Math.max(maxLat, latitude);
                                         minLng = Math.min(minLng, longitude);
                                         maxLng = Math.max(maxLng, longitude);
-                                        
+
                                         // Create a circle around the point
                                         double radius = 0.0001; // Adjust this value to change circle size
                                         List<List<Point>> circlePoints = createCircle(longitude, latitude, radius);
@@ -251,25 +251,25 @@ public class Becomap {
                                         List<?> ring = (List<?>) allRings.get(0);
                                         List<List<Point>> polygonPoints = new ArrayList<>();
                                         List<Point> points = new ArrayList<>();
-                                        
+
                                         for (Object coord : ring) {
                                             if (coord instanceof List) {
                                                 List<?> point = (List<?>) coord;
                                                 if (point.size() >= 2 && point.get(0) instanceof Number && point.get(1) instanceof Number) {
                                                     double longitude = ((Number) point.get(0)).doubleValue();
                                                     double latitude = ((Number) point.get(1)).doubleValue();
-                                                    
+
                                                     // Update bounds
                                                     minLat = Math.min(minLat, latitude);
                                                     maxLat = Math.max(maxLat, latitude);
                                                     minLng = Math.min(minLng, longitude);
                                                     maxLng = Math.max(maxLng, longitude);
-                                                    
+
                                                     points.add(Point.fromLngLat(longitude, latitude));
                                                 }
                                             }
                                         }
-                                        
+
                                         if (!points.isEmpty()) {
                                             polygonPoints.add(points);
                                             feature = Feature.fromGeometry(Polygon.fromLngLats(polygonPoints));
@@ -290,11 +290,11 @@ public class Becomap {
                                 double height = shapeProps.getHeight();
                                 String color = shapeProps.getColor();
                                 double opacity = shapeProps.getOpacity();
-                                
+
                                 feature.addNumberProperty("height", height);
                                 feature.addStringProperty("color", color);
                                 feature.addNumberProperty("opacity", opacity);
-                                
+
                                 features.add(feature);
                                 validShapes++;
                                 Log.d("Becomap", "Added shape with label: " + shape.getShapeId() + " of type: " + geometryType);
@@ -341,23 +341,23 @@ public class Becomap {
 
                 // Calculate center point and zoom level
                 if (minLat != Double.MAX_VALUE && maxLat != Double.MIN_VALUE &&
-                    minLng != Double.MAX_VALUE && maxLng != Double.MIN_VALUE) {
-                    
+                        minLng != Double.MAX_VALUE && maxLng != Double.MIN_VALUE) {
+
                     // Calculate center point
                     double centerLat = (minLat + maxLat) / 2;
                     double centerLng = (minLng + maxLng) / 2;
-                    
+
                     // Calculate zoom level based on bounds
                     double latDelta = maxLat - minLat;
                     double lngDelta = maxLng - minLng;
                     double maxDelta = Math.max(latDelta, lngDelta);
-                    
+
                     // Calculate zoom level (adjust the multiplier to control zoom level)
                     double zoomLevel = Math.log(360 / maxDelta) / Math.log(2);
-                    
+
                     // Add some padding to the zoom level
                     zoomLevel = Math.min(zoomLevel - 0.5, 20.0);
-                    
+
                     // Set camera position
                     mapLibreMap.setCameraPosition(new CameraPosition.Builder()
                             .target(new LatLng(centerLat, centerLng))
@@ -365,9 +365,9 @@ public class Becomap {
                             .tilt(45)
                             .bearing(0)
                             .build());
-                    
-                    Log.d("Becomap", "Set camera position - Center: " + centerLat + "," + centerLng + 
-                          ", Zoom: " + zoomLevel);
+
+                    Log.d("Becomap", "Set camera position - Center: " + centerLat + "," + centerLng +
+                            ", Zoom: " + zoomLevel);
                 }
             } else {
                 Log.e("Becomap", "No valid features to add to the map");
@@ -378,14 +378,14 @@ public class Becomap {
     private List<List<Point>> createCircle(double centerLng, double centerLat, double radius) {
         List<Point> points = new ArrayList<>();
         int segments = 32; // Number of points in the circle
-        
+
         for (int i = 0; i <= segments; i++) {
             double angle = (2 * Math.PI * i) / segments;
             double x = centerLng + (radius * Math.cos(angle));
             double y = centerLat + (radius * Math.sin(angle));
             points.add(Point.fromLngLat(x, y));
         }
-        
+
         List<List<Point>> result = new ArrayList<>();
         result.add(points);
         return result;
@@ -423,7 +423,7 @@ public class Becomap {
                 return view;
             }
         };
-        
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         floorSpinner.setAdapter(adapter);
 
@@ -440,22 +440,22 @@ public class Becomap {
                 if (onFloorSelectedListener != null) {
                     onFloorSelectedListener.onFloorSelected(selectedFloor);
                 }
-                
+
                 // Filter shapes for the selected floor
                 String selectedFloorId = selectedFloor.getFloorId();
                 List<ShapeModel> floorShapes = new ArrayList<>();
                 for (ShapeModel shape : shapeModelList) {
                     if (shape.getFloorId().equals(selectedFloorId)) {
                         floorShapes.add(shape);
-                        Log.d("FloorShapes", "Found shape for floor " + selectedFloorId + 
-                            ": Shape ID=" + shape.getShapeId() + 
-                            ", Type=" + shape.getType() + 
-                            ", Layer ID=" + shape.getLayerId());
+                        Log.d("FloorShapes", "Found shape for floor " + selectedFloorId +
+                                ": Shape ID=" + shape.getShapeId() +
+                                ", Type=" + shape.getType() +
+                                ", Layer ID=" + shape.getLayerId());
                     }
                 }
-                
-                Log.d("FloorSelection", "Selected floor: " + selectedFloor.getShortName() + 
-                    ", Found " + floorShapes.size() + " shapes for this floor");
+
+                Log.d("FloorSelection", "Selected floor: " + selectedFloor.getShortName() +
+                        ", Found " + floorShapes.size() + " shapes for this floor");
 
                 // Draw the shapes on the map
                 drawShapesOnMap(floorShapes);
@@ -529,7 +529,7 @@ public class Becomap {
                 double latitude = siteResponse.getLatitude();
                 double longitude = siteResponse.getLongitude();
                 initializeMapWithCoordinates(latitude, longitude);
-                
+
                 Executors.newSingleThreadExecutor().execute(() -> {
                     try {
                         URL url = new URL(siteResponse.getBinaryUrl().getShape());
@@ -610,21 +610,21 @@ public class Becomap {
             Log.e("Becomap", "Container is null in initializeMap");
             return;
         }
-        
+
         Log.d("Becomap", "Initializing map with container: " + container.getClass().getSimpleName());
         this.rootContainer = container;
-        
+
         // Initialize the map view first
         mapView = new MapView(context);
         mapView.setId(ViewGroup.generateViewId());
-        
+
         // Set map view layout parameters
         ConstraintLayout.LayoutParams mapParams = new ConstraintLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         );
         mapView.setLayoutParams(mapParams);
-        
+
         // Add map view to container
         container.addView(mapView);
 
@@ -632,17 +632,17 @@ public class Becomap {
         if (container instanceof ConstraintLayout) {
             ConstraintSet constraintSet = new ConstraintSet();
             constraintSet.clone((ConstraintLayout) container);
-            
+
             // Connect map view to parent
             constraintSet.connect(mapView.getId(), ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START);
             constraintSet.connect(mapView.getId(), ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
             constraintSet.connect(mapView.getId(), ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
             constraintSet.connect(mapView.getId(), ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
-            
+
             // Apply constraints
             constraintSet.applyTo((ConstraintLayout) container);
         }
-        
+
         // Initialize the map with the default style
         mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
@@ -651,19 +651,19 @@ public class Becomap {
                 map.setStyle(DEFAULT_STYLE_URL, style -> {
                     // Set initial camera position with tilt
                     map.setCameraPosition(new CameraPosition.Builder()
-                        .zoom(17)
-                        .tilt(45)
-                        .bearing(0)
-                        .build());
+                            .zoom(17)
+                            .tilt(45)
+                            .bearing(0)
+                            .build());
                 });
-                
+
                 Log.d("Becomap", "Map initialized with style: " + DEFAULT_STYLE_URL);
             }
         });
-        
+
         // Create the spinner after the map is added
         createFloorSpinner();
-        
+
         Log.d("Becomap", "Map view initialized and added to container");
     }
 
