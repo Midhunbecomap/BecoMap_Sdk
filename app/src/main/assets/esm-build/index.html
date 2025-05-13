@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta http-equiv="Content-Security-Policy" content="default-src * data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval';"><meta name="viewport" content="width=device-width,initial-scale=1"/><style>body, html { margin:0; padding:0; height:100%; }
+    #app {
+      width: 100%;
+      height: 100%;
+    }</style></head><body><div id="app"></div><script src="https://unpkg.com/maplibre-gl@4.4.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script><script>document.addEventListener('DOMContentLoaded', function() {
+      if (
+        window.becomap &&
+        typeof window.becomap.getSite === 'function' &&
+        typeof window.becomap.getMapView === 'function'
+      ) {
+        window.becomap.getSite(
+            { clientId:'c079dfa3a77dad13351cfacd95841c2c2780fe08', clientSecret:'f62a59675b2a47ddb75f1f994d88e653', siteIdentifier:'67dcf5dd2f21c64e3225254f' }
+        )
+        .then(site => {
+          return window.becomap.getMapView(
+            document.getElementById('app'),
+            site,
+            { zoom: 18.2 }
+          );
+        })
+        .then(() => {
+          console.log('Map rendered successfully');
+        })
+        .catch(error => {
+          console.error('Error initializing map:', error);
+        });
+      } else {
+        console.error('becomap library did not load correctly.');
+      }
+    });</script><script defer="defer" src="becomap.a745e2038d6983ad5c65.js"></script><script defer="defer" src="becomap.8312313e6a9f1e9a8b6a.js"></script><script defer="defer" src="becomap.84a99f3240cbef0c4d32.js"></script><script defer="defer" src="becomap.a062944bea7108457435.js"></script><script defer="defer" src="becomap.bcf2e2ed4ce59634d5ff.js"></script><script defer="defer" src="becomap.8a7c92b22708b892f36b.js"></script><script defer="defer" src="becomap.f892883bdbf284279606.js"></script><script defer="defer" src="becomap.f6ceb8b33a4cfccb6b7a.js"></script><script defer="defer" src="becomap.367bab73996e70f09901.js"></script><script defer="defer" src="becomap.56de25a638de5d2c8c29.js"></script><script defer="defer" src="becomap.91d51f79119f46d3f73d.js"></script><script defer="defer" src="becomap.eba32aac17f9181daced.js"></script><script defer="defer" src="becomap.3c72412b9c235cac3445.js"></script><script defer="defer" src="becomap.eb028bb7f7df8748044a.js"></script></body></html>
