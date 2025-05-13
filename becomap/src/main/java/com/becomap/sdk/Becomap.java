@@ -133,6 +133,7 @@ public class Becomap {
 
     private void loadLocalHtml() {
         if (webView != null) {
+            // Load the HTML file from the SDK's assets folder
             webView.loadUrl("file:///android_asset/esm-build/index.html");
         }
     }
