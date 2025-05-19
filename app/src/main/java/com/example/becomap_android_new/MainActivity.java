@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.widget.FrameLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.becomap.sdk.Becomap;
+import com.becomap.sdk.UI.Becomap;
 
 public class MainActivity extends AppCompatActivity {
     private Becomap becomap;

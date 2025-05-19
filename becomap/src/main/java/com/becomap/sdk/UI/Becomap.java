@@ -1,4 +1,4 @@
-package com.becomap.sdk;
+package com.becomap.sdk.UI;
 
 import android.app.Activity;
 import android.content.Context;
