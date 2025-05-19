@@ -29,6 +29,7 @@ public class BecomapViewModel extends AndroidViewModel {
         return clientSecret;
     }
 
+
     public LiveData<String> getSiteIdentifier() {
         return siteIdentifier;
     }
