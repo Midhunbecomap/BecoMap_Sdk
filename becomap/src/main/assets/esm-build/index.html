@@ -1,30 +1,37 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta http-equiv="Content-Security-Policy" content="default-src * data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval';"><meta name="viewport" content="width=device-width,initial-scale=1"/><style>body, html { margin:0; padding:0; height:100%; }
-    #app {
-      width: 100%;
-      height: 100%;
-    }</style></head><body><div id="app"></div><script src="https://unpkg.com/maplibre-gl@4.4.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script><script>document.addEventListener('DOMContentLoaded', function() {
-      if (
-        window.becomap &&
-        typeof window.becomap.getSite === 'function' &&
-        typeof window.becomap.getMapView === 'function'
-      ) {
-        window.becomap.getSite(
-            { clientId:'c079dfa3a77dad13351cfacd95841c2c2780fe08', clientSecret:'f62a59675b2a47ddb75f1f994d88e653', siteIdentifier:'67dcf5dd2f21c64e3225254f' }
-        )
-        .then(site => {
-          return window.becomap.getMapView(
-            document.getElementById('app'),
-            site,
-            { zoom: 18.2 }
-          );
-        })
-        .then(() => {
-          console.log('Map rendered successfully');
-        })
-        .catch(error => {
-          console.error('Error initializing map:', error);
-        });
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Becomap UMD SDK</title><style>body, html { margin:0; padding:0; height:100%; }
+    #mapContainer { width:100%; height:100%; }</style></head><body><div id="mapContainer"></div><script src="https://unpkg.com/maplibre-gl@4.4.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script><script>window._mapView = null;
+    window._site = null;
+
+    function notifyNative(msg) {
+      if (window.webkit?.messageHandlers?.jsHandler) {
+        // iOS
+        window.webkit.messageHandlers.jsHandler.postMessage(msg);
+      } else if (window.jsHandler?.postMessage) {
+        // Android
+        window.jsHandler.postMessage(msg);
       } else {
-        console.error('becomap library did not load correctly.');
+        console.log("Native handler not available:", msg);
       }
-    });</script><script defer="defer" src="becomap.a745e2038d6983ad5c65.js"></script><script defer="defer" src="becomap.8312313e6a9f1e9a8b6a.js"></script><script defer="defer" src="becomap.84a99f3240cbef0c4d32.js"></script><script defer="defer" src="becomap.a062944bea7108457435.js"></script><script defer="defer" src="becomap.bcf2e2ed4ce59634d5ff.js"></script><script defer="defer" src="becomap.8a7c92b22708b892f36b.js"></script><script defer="defer" src="becomap.f892883bdbf284279606.js"></script><script defer="defer" src="becomap.f6ceb8b33a4cfccb6b7a.js"></script><script defer="defer" src="becomap.367bab73996e70f09901.js"></script><script defer="defer" src="becomap.56de25a638de5d2c8c29.js"></script><script defer="defer" src="becomap.91d51f79119f46d3f73d.js"></script><script defer="defer" src="becomap.eba32aac17f9181daced.js"></script><script defer="defer" src="becomap.3c72412b9c235cac3445.js"></script><script defer="defer" src="becomap.eb028bb7f7df8748044a.js"></script></body></html>
+    }
+
+    async function init(siteOptions) {
+      try {
+        const container = document.getElementById('mapContainer');
+        if (!window.becomap?.getSite || !window.becomap?.getMapView) {
+          console.error('Becomap UMD not loaded');
+          return;
+        }
+        const mapOptions = { zoom: 18.5};
+        window._site = await window.becomap.getSite(siteOptions);
+        window._mapView = await window.becomap.getMapView(container, window._site, mapOptions);
+          onRenderComplete();
+      } catch (err) {
+        console.error('init error', err);
+      }
+    }
+
+    function onRenderComplete() {
+      notifyNative("onRenderComplete");
+    }
+
+    globalThis.init = init;</script><script defer="defer" src="becomap.f05a993cdc4eb252f62b.js"></script><script defer="defer" src="becomap.f0b7abcb75baea7c1df5.js"></script><script defer="defer" src="becomap.ccc3167a5ce836ba4c53.js"></script><script defer="defer" src="becomap.bfe3267237ccb290d179.js"></script><script defer="defer" src="becomap.5ea4464ac5802f04ba5e.js"></script><script defer="defer" src="becomap.18c2b11fde8c0c023eba.js"></script><script defer="defer" src="becomap.83dbcb5626a31287f666.js"></script><script defer="defer" src="becomap.12dee6bdc02b88239826.js"></script><script defer="defer" src="becomap.f56e1f03ee5f25a0b69f.js"></script><script defer="defer" src="becomap.076222c0c93505b72c30.js"></script><script defer="defer" src="becomap.0d76ba0611fbd0cf0fdb.js"></script><script defer="defer" src="becomap.f164808398a8e8b1e455.js"></script><script defer="defer" src="becomap.f195b1647c8142325bd4.js"></script><script defer="defer" src="becomap.89192fc0c24b9f0f8ff7.js"></script></body></html>
