@@ -48,6 +48,7 @@ public class MapFragment extends Fragment {
     private List<Location> allLocations = new ArrayList<>();
     private List<Store> allStores = new ArrayList<>();
     private TextInputEditText currentSelectedField;
+
     private int stopCount = 0;
     private TextInputLayout lastSelectedLayout;
     FrameLayout mapContainer;
