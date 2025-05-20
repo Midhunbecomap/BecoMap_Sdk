@@ -21,10 +21,16 @@ import androidx.lifecycle.ViewModelStoreOwner;
 
 import com.becomap.sdk.Config.BecoWebInterface;
 import com.becomap.sdk.ViewModel.BecomapViewModel;
+import com.becomap.sdk.model.LocationModel;
+import com.becomap.sdk.model.SearchResult;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Becomap {
@@ -33,6 +39,7 @@ public class Becomap {
     private ViewGroup rootContainer;
     private BecomapViewModel viewModel;
     private static final String TAG = "Becomap";
+    private BecomapCallback callback;
     private BecoWebInterface jsConfig;
     public Becomap(Context context) {
         if (context == null) throw new IllegalArgumentException("Context cannot be null");
@@ -61,7 +68,10 @@ public class Becomap {
         setupWebView();
         loadLocalHtml();
     }
-
+    public void searchLocation( String value) {
+        Log.d(TAG, "searchLocation: "+value);
+        jsConfig.execute_search_all_location(webView,value);
+    }
     private void setupWebView() {
         if (webView == null) return;
 
@@ -114,7 +124,9 @@ public class Becomap {
         }
     }
 
-
+    public void setCallback(BecomapCallback callback) {
+        this.callback = callback;
+    }
     private class WebAppInterface {
         Context mContext;
 
@@ -128,14 +140,13 @@ public class Becomap {
 
             try {
                 JSONObject message = new JSONObject(messageJson);
-                String type = message.getString("type");
+                String types = message.getString("type");
 
-                switch (type) {
+                switch (types) {
                     case "onRenderComplete":
                         if (mContext instanceof Activity) {
                             ((Activity) mContext).runOnUiThread(() -> {
                                 Log.d(TAG, "Map Render Complete");
-
                                 // Call getLocations() from Android after render is complete
                                 if (webView != null) {
                                     jsConfig.executegetalllocation(webView);
@@ -146,18 +157,59 @@ public class Becomap {
 
                     case "getLocations":
                         JSONArray locations = message.getJSONArray("payload");
+                        List<LocationModel> locationList = new ArrayList<>();
+
+                        for (int i = 0; i < locations.length(); i++) {
+                            JSONObject loc = locations.getJSONObject(i);
+
+                            String id = loc.optString("id");
+                            String type = loc.optString("type");
+                            String amenity = loc.optString("amenity");
+
+                            JSONObject floor = loc.optJSONObject("floor");
+                            double elevation = floor != null ? floor.optDouble("elevation", 0.0) : 0.0;
+
+                            List<String> categories = new ArrayList<>();
+                            JSONArray cats = loc.optJSONArray("categories");
+                            if (cats != null) {
+                                for (int j = 0; j < cats.length(); j++) {
+                                    JSONObject cat = cats.getJSONObject(j);
+                                    categories.add(cat.optString("id"));
+                                }
+                            }
+
+                            locationList.add(new LocationModel(id, type, amenity, categories, elevation));
+                        }
+
                         Log.d(TAG, "Locations received: " + locations.getString(0).toString());
 
                         // Optional: Process locations or pass to ViewModel here
                         break;
+                    case "searchForLocations":
+                        JSONObject payload = message.getJSONObject("payload");
+                        JSONArray resultsArray = payload.getJSONArray("results");
 
+                        Gson gson = new Gson();
+                        List<SearchResult> searchResults = new ArrayList<>();
+
+                        for (int i = 0; i < resultsArray.length(); i++) {
+                            JSONObject obj = resultsArray.getJSONObject(i);
+                            Log.e( "postMessage: ",resultsArray.toString() );
+                            SearchResult result = gson.fromJson(obj.toString(), SearchResult.class);
+                            searchResults.add(result);
+                        }
+                        // Send the result to the Fragment via callback
+                        if (callback != null) {
+                            callback.onSearchResultsReceived(searchResults);
+                        }
+                        break;
                     case "initError":
                         JSONObject error = message.getJSONObject("payload");
                         Log.e(TAG, "Init error: " + error.optString("message"));
                         break;
 
                     default:
-                        Log.w(TAG, "Unhandled message type: " + type);
+                        Log.w(TAG, "Unhandled message type: " + types);
                         break;
                 }
             } catch (JSONException e) {
@@ -166,6 +218,9 @@ public class Becomap {
         }
     }
 
+    public interface BecomapCallback {
+        void onSearchResultsReceived(List<SearchResult> searchResults);
+    }
 
     // Lifecycle hooks
     public void onStart() { if (webView != null) webView.onResume(); }

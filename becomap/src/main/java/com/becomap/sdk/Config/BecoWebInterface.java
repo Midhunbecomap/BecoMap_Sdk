@@ -59,4 +59,15 @@ public class BecoWebInterface {
 
         webView.evaluateJavascript("javascript:getLocations()", null);
     }
+
+    public void execute_search_all_location(WebView webView,String value) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute searchlocation");
+            return;
+        }
+        String callbackId = "search_callback_1";
+
+        String jsCall = String.format("javascript:searchForLocations('%s', '%s')", value, callbackId);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
 }

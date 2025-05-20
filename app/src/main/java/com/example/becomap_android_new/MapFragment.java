@@ -1,8 +1,11 @@
 package com.example.becomap_android_new;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -17,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.becomap.sdk.UI.Becomap;
+import com.becomap.sdk.model.SearchResult;
 import com.example.becomap_android_new.adapter.LocationAdapter;
 import com.example.becomap_android_new.model.Location;
 import com.example.becomap_android_new.model.Store;
@@ -80,6 +84,16 @@ public class MapFragment extends Fragment {
         becomap.initializeMap(mapContainer, "c079dfa3a77dad13351cfacd95841c2c2780fe08",
                 "f62a59675b2a47ddb75f1f994d88e653",
                 "67dcf5dd2f21c64e3225254f");
+
+        becomap.setCallback(new Becomap.BecomapCallback() {
+            @Override
+            public void onSearchResultsReceived(List<SearchResult> searchResults) {
+                // Handle the results here
+                Log.d("MyActivity", "Received " + searchResults.size() + " search results");
+                // Update UI or pass data as needed
+                Log.d(TAG, "onSearchResultsReceived: "+searchResults.get(0).id);
+            }
+        });
         // Setup RecyclerView
         locationsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         locationAdapter = new LocationAdapter(new ArrayList<>(), location -> {
@@ -119,10 +133,30 @@ public class MapFragment extends Fragment {
         loadStores();
 
         // Setup search field click listener
-        searchEditText.setOnClickListener(v -> {
-            currentSelectedField = searchEditText;
-            showLocationList();
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No-op
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s.toString().trim();
+                becomap.searchLocation(query); // Or debounce this if needed
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Optional
+            }
         });
+
+
+//        searchEditText.setOnClickListener(v -> {
+//            becomap.searchLocation(searchEditText.getText().toString());
+//            currentSelectedField = searchEditText;
+////            showLocationList();
+//        });
 
         // Setup from field click listener
         fromEditText.setOnClickListener(v -> {
@@ -335,6 +369,8 @@ public class MapFragment extends Fragment {
             locationsText.setVisibility(View.GONE);
         }
     }
+
+
 
     private static class StoreResponse {
         private List<Store> stores;
