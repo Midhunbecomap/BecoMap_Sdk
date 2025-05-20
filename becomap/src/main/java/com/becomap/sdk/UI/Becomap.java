@@ -19,7 +19,12 @@ import android.webkit.ConsoleMessage;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 
+import com.becomap.sdk.Config.BecoWebInterface;
 import com.becomap.sdk.ViewModel.BecomapViewModel;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class Becomap {
@@ -28,7 +33,7 @@ public class Becomap {
     private ViewGroup rootContainer;
     private BecomapViewModel viewModel;
     private static final String TAG = "Becomap";
-
+    private BecoWebInterface jsConfig;
     public Becomap(Context context) {
         if (context == null) throw new IllegalArgumentException("Context cannot be null");
         this.context = context;
@@ -43,7 +48,7 @@ public class Becomap {
 
     public void initializeMap(ViewGroup container, String clientId, String clientSecret, String siteIdentifier) {
         this.rootContainer = container;
-
+        jsConfig = new BecoWebInterface(clientId, clientSecret, siteIdentifier);
         // Save credentials in ViewModel
         viewModel.setCredentials(clientId, clientSecret, siteIdentifier);
 
@@ -83,12 +88,8 @@ public class Becomap {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                String clientId = viewModel.getClientId().getValue();
-                String clientSecret = viewModel.getClientSecret().getValue();
-                String siteId = viewModel.getSiteIdentifier().getValue();
-
-                if (clientId != null && clientSecret != null && siteId != null) {
-                    publishMessage("init({ clientId: '" + clientId + "', clientSecret: '" + clientSecret + "', siteIdentifier: '" + siteId + "' })");
+                if ( jsConfig != null) {
+                    jsConfig.executeInit(webView);
                 }
             }
 
@@ -113,16 +114,6 @@ public class Becomap {
         }
     }
 
-    public void publishMessage(String jsMessage) {
-        if (webView == null) {
-            Log.e(TAG, "WebView is null, cannot publish message");
-            return;
-        }
-
-        String script = "javascript:(function() { " + jsMessage + " })()";
-        webView.evaluateJavascript(script, value ->
-                Log.d(TAG, "JavaScript message published: " + jsMessage));
-    }
 
     private class WebAppInterface {
         Context mContext;
@@ -132,34 +123,49 @@ public class Becomap {
         }
 
         @JavascriptInterface
-        public void postMessage(String message) {
-            Log.d(TAG, "Received from JS: " + message);
-            if ("onRenderComplete".equals(message)) {
-                if (mContext instanceof Activity) {
-                    ((Activity) mContext).runOnUiThread(() ->
-                            Toast.makeText(mContext, "Map Render Complete", Toast.LENGTH_SHORT).show());
+        public void postMessage(String messageJson) {
+            Log.d(TAG, "Received from JS: " + messageJson);
+
+            try {
+                JSONObject message = new JSONObject(messageJson);
+                String type = message.getString("type");
+
+                switch (type) {
+                    case "onRenderComplete":
+                        if (mContext instanceof Activity) {
+                            ((Activity) mContext).runOnUiThread(() -> {
+                                Log.d(TAG, "Map Render Complete");
+
+                                // Call getLocations() from Android after render is complete
+                                if (webView != null) {
+                                    jsConfig.executegetalllocation(webView);
+                                }
+                            });
+                        }
+                        break;
+
+                    case "getLocations":
+                        JSONArray locations = message.getJSONArray("payload");
+                        Log.d(TAG, "Locations received: " + locations.getString(0).toString());
+
+                        // Optional: Process locations or pass to ViewModel here
+                        break;
+
+                    case "initError":
+                        JSONObject error = message.getJSONObject("payload");
+                        Log.e(TAG, "Init error: " + error.optString("message"));
+                        break;
+
+                    default:
+                        Log.w(TAG, "Unhandled message type: " + type);
+                        break;
                 }
+            } catch (JSONException e) {
+                Log.e(TAG, "Invalid JSON received: " + messageJson, e);
             }
         }
     }
 
-    public void searchAndRoute(String firstLocation, String secondLocation) {
-        if (webView == null) return;
-
-        String script = "javascript:(function() {" +
-                "if (!window._mapView || !window._mapView.eventsHandler) return;" +
-                "window._mapView.eventsHandler.on('load', () => {" +
-                "searchForLocations('" + firstLocation + "', function(tMatches) {" +
-                "searchForLocations('" + secondLocation + "', function(kMatches) {" +
-                "if (tMatches.length && kMatches.length) {" +
-                "const segments = getRoute(tMatches[0], kMatches[0], [], { maxDistanceThreshold: 30 });" +
-                "if (segments) { showRoute(segments, null); }" +
-                "}});});});})()";
-
-        webView.evaluateJavascript(script, value -> {
-            Log.d(TAG, "Route search called: " + firstLocation + " -> " + secondLocation);
-        });
-    }
 
     // Lifecycle hooks
     public void onStart() { if (webView != null) webView.onResume(); }
@@ -175,6 +181,9 @@ public class Becomap {
             webView.onPause();
             webView.removeAllViews();
             webView.destroy();
+            webView.setWebChromeClient(null);
+            webView.setWebViewClient(null);
+            webView.removeJavascriptInterface("jsHandler");
             webView = null;
         }
     }

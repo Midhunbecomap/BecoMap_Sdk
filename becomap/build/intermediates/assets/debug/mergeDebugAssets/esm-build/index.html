@@ -1,16 +1,18 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Becomap UMD SDK</title><style>body, html { margin:0; padding:0; height:100%; }
-    #mapContainer { width:100%; height:100%; }</style></head><body><div id="mapContainer"></div><script src="https://unpkg.com/maplibre-gl@4.4.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script><script>window._mapView = null;
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Becomap UMD SDK</title><style>body, html { margin: 0; padding: 0; height: 100%; }
+    #mapContainer { width: 100%; height: 100%; }</style></head><body><div id="mapContainer"></div><script src="https://unpkg.com/maplibre-gl@4.4.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script><script>window._mapView = null;
     window._site = null;
 
-    function notifyNative(msg) {
+    function notifyNative(type, payload = null) {
+      const message = JSON.stringify({ type, payload });
+
       if (window.webkit?.messageHandlers?.jsHandler) {
         // iOS
-        window.webkit.messageHandlers.jsHandler.postMessage(msg);
+        window.webkit.messageHandlers.jsHandler.postMessage(message);
       } else if (window.jsHandler?.postMessage) {
         // Android
-        window.jsHandler.postMessage(msg);
+        window.jsHandler.postMessage(message);
       } else {
-        console.log("Native handler not available:", msg);
+        console.log("Native handler not available:", message);
       }
     }
 
@@ -21,17 +23,86 @@
           console.error('Becomap UMD not loaded');
           return;
         }
-        const mapOptions = { zoom: 18.5};
+        const mapOptions = { zoom: 18.5 };
         window._site = await window.becomap.getSite(siteOptions);
         window._mapView = await window.becomap.getMapView(container, window._site, mapOptions);
-          onRenderComplete();
+        notifyNative("onRenderComplete");
       } catch (err) {
         console.error('init error', err);
+        notifyNative("initError", { message: err.message });
       }
     }
 
-    function onRenderComplete() {
-      notifyNative("onRenderComplete");
-    }
+    globalThis.init = init;
 
-    globalThis.init = init;</script><script defer="defer" src="becomap.f05a993cdc4eb252f62b.js"></script><script defer="defer" src="becomap.f0b7abcb75baea7c1df5.js"></script><script defer="defer" src="becomap.ccc3167a5ce836ba4c53.js"></script><script defer="defer" src="becomap.bfe3267237ccb290d179.js"></script><script defer="defer" src="becomap.5ea4464ac5802f04ba5e.js"></script><script defer="defer" src="becomap.18c2b11fde8c0c023eba.js"></script><script defer="defer" src="becomap.83dbcb5626a31287f666.js"></script><script defer="defer" src="becomap.12dee6bdc02b88239826.js"></script><script defer="defer" src="becomap.f56e1f03ee5f25a0b69f.js"></script><script defer="defer" src="becomap.076222c0c93505b72c30.js"></script><script defer="defer" src="becomap.0d76ba0611fbd0cf0fdb.js"></script><script defer="defer" src="becomap.f164808398a8e8b1e455.js"></script><script defer="defer" src="becomap.f195b1647c8142325bd4.js"></script><script defer="defer" src="becomap.89192fc0c24b9f0f8ff7.js"></script></body></html>
+    // -------- Site Methods --------
+    globalThis.getSiteId = () => notifyNative("getSiteId", _site?.id);
+    globalThis.getSiteName = () => notifyNative("getSiteName", _site?.siteName);
+    globalThis.getBuildings = () => notifyNative("getBuildings", _site?.buildings);
+    globalThis.getDefaultFloor = () => notifyNative("getDefaultFloor", _site?.getDefaultMap());
+    globalThis.getLanguages = () => notifyNative("getLanguages", _site?.otherLanguages);
+
+    // -------- MapView Methods --------
+    globalThis.getCurrentFloor = () => notifyNative("getCurrentFloor", _mapView?.currentFloor);
+    globalThis.getCategories = () => notifyNative("getCategories", _mapView?.getCategories());
+    globalThis.getLocations = () => notifyNative("getLocations", _mapView?.getLocations());
+    globalThis.getAllAmenities = () => notifyNative("getAllAmenities", _mapView?.getAllAminityLocations());
+    globalThis.getAmenities = () => notifyNative("getAmenities", _mapView?.getAmenities());
+    globalThis.getQuestions = () => notifyNative("getQuestions", _mapView?.getQuestions());
+
+    globalThis.getSessionId = async () => {
+      try {
+        const sessionId = await _mapView?.getSessionId();
+        notifyNative("getSessionId", sessionId);
+      } catch (err) {
+        notifyNative("getSessionIdError", { message: err.message });
+      }
+    };
+
+    globalThis.getHappenings = (type) => {
+      const res = _mapView?.getHappenings(type);
+      notifyNative("getHappenings", res);
+    };
+
+    globalThis.getEventSuggestions = async (sessionId, answers) => {
+      try {
+        const res = await _mapView?.getEventSuggestions(sessionId, answers);
+        notifyNative("getEventSuggestions", res);
+      } catch (err) {
+        notifyNative("getEventSuggestionsError", { message: err.message });
+      }
+    };
+
+    globalThis.selectFloor = (floor) => _mapView?.selectFloor(floor);
+    globalThis.selectLocation = (location) => _mapView?.selectLocation(location);
+    globalThis.selectAmenities = (type) => _mapView?.selectAmenities(type);
+    globalThis.focusTo = (location, zoom, bearing, pitch) =>
+      _mapView?.focusTo(location, zoom, bearing, pitch);
+    globalThis.clearSelection = () => _mapView?.clearSelection();
+    globalThis.updateZoom = (zoom) => _mapView?.updateZoom(zoom);
+    globalThis.updatePitch = (pitch) => _mapView?.updatePitch(pitch);
+    globalThis.updateBearing = (bearing) => _mapView?.updateBearing(bearing);
+    globalThis.enableMultiSelection = (val) => _mapView?.enableMultiSelection(val);
+    globalThis.setBounds = (sw, ne) => _mapView?.setBounds(sw, ne);
+    globalThis.setViewport = (options) => _mapView?.setViewport(options);
+    globalThis.resetDefaultViewport = (options) => _mapView?.resetDefaultViewport(options);
+
+    globalThis.searchForLocations = (q, callbackId) => {
+      _mapView?.searchForLocations(q, (matches) => {
+        notifyNative("searchForLocations", { callbackId, results: matches });
+      });
+    };
+
+    globalThis.searchForCategories = (q, callbackId) => {
+      _mapView?.searchForCategories(q, (matches) => {
+        notifyNative("searchForCategories", { callbackId, results: matches });
+      });
+    };
+
+    // -------- RouteController Methods --------
+    globalThis.showRoute = (segments, floor = null) =>
+      _mapView?.routeController?.showRoute(segments, floor);
+    globalThis.walkThrough = (segment) => _mapView?.routeController?.walkThrough(segment);
+    globalThis.stopWalking = () => _mapView?.routeController?.stopWalking();
+    globalThis.showStep = (step) => _mapView?.routeController?.showStep(step);
+    globalThis.clearAllRoutes = () => _mapView?.routeController?.clearAllRoutes();</script><script defer="defer" src="becomap.bf99455a2ac872d6f982.js"></script><script defer="defer" src="becomap.6021778c8fae09e50523.js"></script><script defer="defer" src="becomap.d7a9c066c12abe303463.js"></script><script defer="defer" src="becomap.eaeaef66319a6cfacdc9.js"></script><script defer="defer" src="becomap.60d626b2291d03feb07e.js"></script><script defer="defer" src="becomap.8961ea4e79a621e2bed1.js"></script><script defer="defer" src="becomap.070d22ce3c820f06412c.js"></script><script defer="defer" src="becomap.125e8d8224f1b63c14a8.js"></script><script defer="defer" src="becomap.a2ca64b945283df10f1d.js"></script><script defer="defer" src="becomap.87d5e25b90c37a440f46.js"></script><script defer="defer" src="becomap.5ffc1862de12859e341f.js"></script><script defer="defer" src="becomap.8e8af83d8e81f7d49968.js"></script><script defer="defer" src="becomap.cca92cbb32c4d9535561.js"></script><script defer="defer" src="becomap.514db33005b23bc79646.js"></script></body></html>

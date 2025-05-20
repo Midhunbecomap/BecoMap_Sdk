@@ -1,0 +1,354 @@
+[
+  {
+    "floor": {
+      "id": "67b56b4eb253dc2bccb426f9",
+      "name": "hp_level00.png",
+      "shortName": "Level 0",
+      "imageUrl": null,
+      "elevation": 0
+    },
+    "id": "67c96ac0e61ff55e8a0c54f9",
+    "name": "Hotel - Guest Registration",
+    "externalId": "",
+    "type": "TENANT",
+    "description": " ",
+    "amenity": "",
+    "phone": {
+      "phone": "918888888888"
+    },
+    "social": {},
+    "operationHours": [],
+    "links": [],
+    "categories": [
+      {
+        "id": "67cc13d808a6cb07bcbb13f2",
+        "name": "Help Desk",
+        "color": {
+          "rgba": "rgb(65,100,139)",
+          "hex": "#41648B",
+          "opacity": 1
+        },
+        "externalId": "",
+        "iconName": "HELP_DESK"
+      }
+    ],
+    "stateName": "New",
+    "tags": [],
+    "address": "",
+    "banner": "",
+    "logo": "",
+    "siblingGroups": [],
+    "topLocation": false,
+    "showLogo": false,
+    "mapObject": null,
+    "sortOrder": 4
+  },
+  {
+    "floor": {
+      "id": "67b56b4eb253dc2bccb426f9",
+      "name": "hp_level00.png",
+      "shortName": "Level 0",
+      "imageUrl": null,
+      "elevation": 0
+    },
+    "id": "67ca9c4038bd9574cb952174",
+    "name": "Ryman Hall C1 - Meals",
+    "externalId": "",
+    "type": "TENANT",
+    "description": " ",
+    "amenity": "",
+    "phone": {
+      "phone": "918888888888"
+    },
+    "social": {},
+    "operationHours": [],
+    "links": [],
+    "categories": [
+      {
+        "id": "67cac11055a6655b860ae335",
+        "name": "Dining",
+        "color": {
+          "rgba": "rgb(250,121,33)",
+          "hex": "#fa7921",
+          "opacity": 1
+        },
+        "externalId": "",
+        "iconName": "DINING"
+      }
+    ],
+    "stateName": "New",
+    "tags": [],
+    "address": "",
+    "banner": "",
+    "logo": "",
+    "siblingGroups": [],
+    "topLocation": false,
+    "showLogo": false,
+    "mapObject": null,
+    "sortOrder": 3
+  },
+  {
+    "floor": {
+      "id": "67b56b4eb253dc2bccb426f9",
+      "name": "hp_level00.png",
+      "shortName": "Level 0",
+      "imageUrl": null,
+      "elevation": 0
+    },
+    "id": "67c96ac0e61ff55e8a0c54f9",
+    "name": "First Floor Hallway",
+    "externalId": "",
+    "type": "TENANT",
+    "description": " ",
+    "amenity": "",
+    "phone": {
+      "phone": "918888888888"
+    },
+    "social": {},
+    "operationHours": [],
+    "links": [],
+    "categories": [
+      {
+        "id": "67cc13d808a6cb07bcbb13f2",
+        "name": "Help Desk",
+        "color": {
+          "rgba": "rgb(65,100,139)",
+          "hex": "#41648B",
+          "opacity": 1
+        },
+        "externalId": "",
+        "iconName": "HELP_DESK"
+      }
+    ],
+    "stateName": "New",
+    "tags": [],
+    "address": "",
+    "banner": "",
+    "logo": "",
+    "siblingGroups": [],
+    "topLocation": false,
+    "showLogo": false,
+    "mapObject": null,
+    "sortOrder": 4
+  },
+  {
+    "floor": {
+      "id": "67b56b4eb253dc2bccb426f9",
+      "name": "hp_level00.png",
+      "shortName": "Level 0",
+      "imageUrl": null,
+      "elevation": 0
+    },
+    "id": "67c96ac0e61ff55e8a0c54f9",
+    "name": "Entrance Gate",
+    "externalId": "",
+    "type": "TENANT",
+    "description": " ",
+    "amenity": "",
+    "phone": {
+      "phone": "918888888888"
+    },
+    "social": {},
+    "operationHours": [],
+    "links": [],
+    "categories": [
+      {
+        "id": "67cc13d808a6cb07bcbb13f2",
+        "name": "Help Desk",
+        "color": {
+          "rgba": "rgb(65,100,139)",
+          "hex": "#41648B",
+          "opacity": 1
+        },
+        "externalId": "",
+        "iconName": "HELP_DESK"
+      }
+    ],
+    "stateName": "New",
+    "tags": [],
+    "address": "",
+    "banner": "",
+    "logo": "",
+    "siblingGroups": [],
+    "topLocation": false,
+    "showLogo": false,
+    "mapObject": null,
+    "sortOrder": 4
+  },
+  {
+    "floor": {
+      "id": "67b56b4eb253dc2bccb426f9",
+      "name": "hp_level00.png",
+      "shortName": "Level 0",
+      "imageUrl": null,
+      "elevation": 0
+    },
+    "id": "67c96ac0e61ff55e8a0c54f9",
+    "name": "Reception Area",
+    "externalId": "",
+    "type": "TENANT",
+    "description": " ",
+    "amenity": "",
+    "phone": {
+      "phone": "918888888888"
+    },
+    "social": {},
+    "operationHours": [],
+    "links": [],
+    "categories": [
+      {
+        "id": "67cc13d808a6cb07bcbb13f2",
+        "name": "Help Desk",
+        "color": {
+          "rgba": "rgb(65,100,139)",
+          "hex": "#41648B",
+          "opacity": 1
+        },
+        "externalId": "",
+        "iconName": "HELP_DESK"
+      }
+    ],
+    "stateName": "New",
+    "tags": [],
+    "address": "",
+    "banner": "",
+    "logo": "",
+    "siblingGroups": [],
+    "topLocation": false,
+    "showLogo": false,
+    "mapObject": null,
+    "sortOrder": 4
+  },
+  {
+    "floor": {
+      "id": "67b56b4eb253dc2bccb426f9",
+      "name": "hp_level00.png",
+      "shortName": "Level 0",
+      "imageUrl": null,
+      "elevation": 0
+    },
+    "id": "67c96ac0e61ff55e8a0c54f9",
+    "name": "Top Floor Pool",
+    "externalId": "",
+    "type": "TENANT",
+    "description": " ",
+    "amenity": "",
+    "phone": {
+      "phone": "918888888888"
+    },
+    "social": {},
+    "operationHours": [],
+    "links": [],
+    "categories": [
+      {
+        "id": "67cc13d808a6cb07bcbb13f2",
+        "name": "Help Desk",
+        "color": {
+          "rgba": "rgb(65,100,139)",
+          "hex": "#41648B",
+          "opacity": 1
+        },
+        "externalId": "",
+        "iconName": "HELP_DESK"
+      }
+    ],
+    "stateName": "New",
+    "tags": [],
+    "address": "",
+    "banner": "",
+    "logo": "",
+    "siblingGroups": [],
+    "topLocation": false,
+    "showLogo": false,
+    "mapObject": null,
+    "sortOrder": 4
+  },
+  {
+    "floor": {
+      "id": "67b56b4eb253dc2bccb426f9",
+      "name": "hp_level00.png",
+      "shortName": "Level 0",
+      "imageUrl": null,
+      "elevation": 0
+    },
+    "id": "67c96ac0e61ff55e8a0c54f9",
+    "name": "Main Floor Lobby",
+    "externalId": "",
+    "type": "TENANT",
+    "description": " ",
+    "amenity": "",
+    "phone": {
+      "phone": "918888888888"
+    },
+    "social": {},
+    "operationHours": [],
+    "links": [],
+    "categories": [
+      {
+        "id": "67cc13d808a6cb07bcbb13f2",
+        "name": "Help Desk",
+        "color": {
+          "rgba": "rgb(65,100,139)",
+          "hex": "#41648B",
+          "opacity": 1
+        },
+        "externalId": "",
+        "iconName": "HELP_DESK"
+      }
+    ],
+    "stateName": "New",
+    "tags": [],
+    "address": "",
+    "banner": "",
+    "logo": "",
+    "siblingGroups": [],
+    "topLocation": false,
+    "showLogo": false,
+    "mapObject": null,
+    "sortOrder": 4
+  },
+  {
+    "floor": {
+      "id": "67b56b4eb253dc2bccb426f9",
+      "name": "hp_level00.png",
+      "shortName": "Level 0",
+      "imageUrl": null,
+      "elevation": 0
+    },
+    "id": "67c96ac0e61ff55e8a0c54f9",
+    "name": "Guest House",
+    "externalId": "",
+    "type": "TENANT",
+    "description": " ",
+    "amenity": "",
+    "phone": {
+      "phone": "918888888888"
+    },
+    "social": {},
+    "operationHours": [],
+    "links": [],
+    "categories": [
+      {
+        "id": "67cc13d808a6cb07bcbb13f2",
+        "name": "Help Desk",
+        "color": {
+          "rgba": "rgb(65,100,139)",
+          "hex": "#41648B",
+          "opacity": 1
+        },
+        "externalId": "",
+        "iconName": "HELP_DESK"
+      }
+    ],
+    "stateName": "New",
+    "tags": [],
+    "address": "",
+    "banner": "",
+    "logo": "",
+    "siblingGroups": [],
+    "topLocation": false,
+    "showLogo": false,
+    "mapObject": null,
+    "sortOrder": 4
+  }
+]

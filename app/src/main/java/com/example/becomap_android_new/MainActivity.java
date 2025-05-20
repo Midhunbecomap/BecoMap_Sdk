@@ -2,42 +2,42 @@ package com.example.becomap_android_new;
 
 import android.os.Bundle;
 import android.widget.FrameLayout;
+import android.util.Log;
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.becomap.sdk.UI.Becomap;
+import org.json.JSONObject;
+import java.util.List;
+
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.becomap_android_new.R;
 
 public class MainActivity extends AppCompatActivity {
-    private Becomap becomap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize views
-        FrameLayout mapContainer = findViewById(R.id.map_container);
+        BottomNavigationView navView = findViewById(R.id.bottom_navigation);
 
-        // Initialize Becomap
-        becomap = new Becomap(this);
-        
-        // Initialize map with WebView
-        becomap.initializeMap(mapContainer, "c079dfa3a77dad13351cfacd95841c2c2780fe08",
-                "f62a59675b2a47ddb75f1f994d88e653",
-                "67dcf5dd2f21c64e3225254f");
-    }
+        // Get the NavHostFragment
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
 
-    @Override
-    public void onBackPressed() {
-        if (becomap.canGoBack()) {
-            becomap.goBack();
-        } else {
-            super.onBackPressed();
-        }
-    }
+        // Get the NavController from the NavHostFragment
+        NavController navController = navHostFragment.getNavController();
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        becomap.onDestroy();
+        // Set up the bottom navigation with the NavController
+        NavigationUI.setupWithNavController(navView, navController);
     }
 }

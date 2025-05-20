@@ -1,0 +1,184 @@
+{
+  "stores": [
+    {
+      "id": "1",
+      "name": "Fresh Grocery Mart",
+      "type": "Supermarket",
+      "description": "A one-stop shop for all your grocery needs with fresh produce and household items.",
+      "operatingHours": {
+        "monday": "8:00 AM - 10:00 PM",
+        "tuesday": "8:00 AM - 10:00 PM",
+        "wednesday": "8:00 AM - 10:00 PM",
+        "thursday": "8:00 AM - 10:00 PM",
+        "friday": "8:00 AM - 11:00 PM",
+        "saturday": "9:00 AM - 11:00 PM",
+        "sunday": "9:00 AM - 9:00 PM"
+      },
+      "location": {
+        "address": "123 Main Street",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10001",
+        "latitude": 40.7128,
+        "longitude": -74.0060
+      },
+      "contact": {
+        "phone": "+1 (212) 555-1234",
+        "email": "info@freshgrocery.com"
+      },
+      "features": [
+        "Free Parking",
+        "Wheelchair Accessible",
+        "Online Ordering",
+        "Delivery Service"
+      ],
+      "rating": 4.5,
+      "totalReviews": 128,
+      "imageName": "GroceryStore"
+    },
+    {
+      "id": "2",
+      "name": "Tech Haven",
+      "type": "Electronics",
+      "description": "Your destination for the latest gadgets, computers, and electronic accessories.",
+      "operatingHours": {
+        "monday": "10:00 AM - 8:00 PM",
+        "tuesday": "10:00 AM - 8:00 PM",
+        "wednesday": "10:00 AM - 8:00 PM",
+        "thursday": "10:00 AM - 8:00 PM",
+        "friday": "10:00 AM - 9:00 PM",
+        "saturday": "10:00 AM - 9:00 PM",
+        "sunday": "11:00 AM - 6:00 PM"
+      },
+      "location": {
+        "address": "456 Tech Plaza",
+        "city": "San Francisco",
+        "state": "CA",
+        "zipCode": "94105",
+        "latitude": 37.7749,
+        "longitude": -122.4194
+      },
+      "contact": {
+        "phone": "+1 (415) 555-5678",
+        "email": "support@techhaven.com"
+      },
+      "features": [
+        "Tech Support",
+        "Product Demos",
+        "Repair Services",
+        "Trade-in Program"
+      ],
+      "rating": 4.8,
+      "totalReviews": 256,
+      "imageName": "TechStore"
+    },
+    {
+      "id": "3",
+      "name": "Fashion Forward",
+      "type": "Clothing",
+      "description": "Trendy clothing store offering the latest fashion for men, women, and children.",
+      "operatingHours": {
+        "monday": "9:00 AM - 9:00 PM",
+        "tuesday": "9:00 AM - 9:00 PM",
+        "wednesday": "9:00 AM - 9:00 PM",
+        "thursday": "9:00 AM - 9:00 PM",
+        "friday": "9:00 AM - 10:00 PM",
+        "saturday": "9:00 AM - 10:00 PM",
+        "sunday": "10:00 AM - 8:00 PM"
+      },
+      "location": {
+        "address": "789 Fashion Avenue",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipCode": "90015",
+        "latitude": 34.0522,
+        "longitude": -118.2437
+      },
+      "contact": {
+        "phone": "+1 (213) 555-9012",
+        "email": "style@fashionforward.com"
+      },
+      "features": [
+        "Personal Styling",
+        "Alteration Services",
+        "Loyalty Program",
+        "Online Shopping"
+      ],
+      "rating": 4.3,
+      "totalReviews": 89,
+      "imageName": "FashionStore"
+    },
+    {
+      "id": "4",
+      "name": "Book Nook",
+      "type": "Bookstore",
+      "description": "Cozy independent bookstore with a wide selection of books and reading nooks.",
+      "operatingHours": {
+        "monday": "10:00 AM - 8:00 PM",
+        "tuesday": "10:00 AM - 8:00 PM",
+        "wednesday": "10:00 AM - 8:00 PM",
+        "thursday": "10:00 AM - 8:00 PM",
+        "friday": "10:00 AM - 9:00 PM",
+        "saturday": "9:00 AM - 9:00 PM",
+        "sunday": "11:00 AM - 6:00 PM"
+      },
+      "location": {
+        "address": "321 Reading Lane",
+        "city": "Chicago",
+        "state": "IL",
+        "zipCode": "60601",
+        "latitude": 41.8781,
+        "longitude": -87.6298
+      },
+      "contact": {
+        "phone": "+1 (312) 555-3456",
+        "email": "books@booknook.com"
+      },
+      "features": [
+        "Reading Area",
+        "Author Events",
+        "Book Clubs",
+        "Coffee Shop"
+      ],
+      "rating": 4.7,
+      "totalReviews": 156,
+      "imageName": "BookStore"
+    },
+    {
+      "id": "5",
+      "name": "Home & Hearth",
+      "type": "Home Goods",
+      "description": "Premium home decor and furniture store with unique pieces for every room.",
+      "operatingHours": {
+        "monday": "10:00 AM - 7:00 PM",
+        "tuesday": "10:00 AM - 7:00 PM",
+        "wednesday": "10:00 AM - 7:00 PM",
+        "thursday": "10:00 AM - 7:00 PM",
+        "friday": "10:00 AM - 8:00 PM",
+        "saturday": "10:00 AM - 8:00 PM",
+        "sunday": "11:00 AM - 6:00 PM"
+      },
+      "location": {
+        "address": "654 Design Street",
+        "city": "Seattle",
+        "state": "WA",
+        "zipCode": "98101",
+        "latitude": 47.6062,
+        "longitude": -122.3321
+      },
+      "contact": {
+        "phone": "+1 (206) 555-7890",
+        "email": "decor@homeandhearth.com"
+      },
+      "features": [
+        "Interior Design Services",
+        "Custom Furniture",
+        "Delivery & Assembly",
+        "Design Workshops"
+      ],
+      "rating": 4.6,
+      "totalReviews": 203,
+      "imageName": "HomeDecor"
+    }
+  ]
+}
