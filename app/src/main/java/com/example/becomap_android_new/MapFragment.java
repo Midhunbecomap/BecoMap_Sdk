@@ -54,6 +54,8 @@ public class MapFragment extends Fragment {
     private TextInputEditText currentSelectedField;
     private int stopCount = 0;
     private TextInputLayout lastSelectedLayout;
+    private TextInputLayout fromLayout;
+    private TextInputLayout toLayout;
     FrameLayout mapContainer;
     private Becomap becomap;
 
@@ -62,30 +64,98 @@ public class MapFragment extends Fragment {
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_map, container, false);
 
+        // Initialize map container first
+        mapContainer = root.findViewById(R.id.map_container);
+        mapContainer.setVisibility(View.VISIBLE);
+        
+        // Initialize other views after map
+        initializeViews(root);
+        
+        // Initialize Becomap after views
+        initializeBecomap();
+
+        return root;
+    }
+
+    private void initializeViews(View root) {
         searchLayout = root.findViewById(R.id.searchLayout);
         searchEditText = root.findViewById(R.id.searchEditText);
         fromToLayout = root.findViewById(R.id.fromToLayout);
         fromEditText = root.findViewById(R.id.fromEditText);
-        TextInputLayout fromLayout = root.findViewById(R.id.fromLayout);
+        fromLayout = root.findViewById(R.id.fromLayout);
         toEditText = root.findViewById(R.id.toEditText);
-        TextInputLayout toLayout = root.findViewById(R.id.toLayout);
+        toLayout = root.findViewById(R.id.toLayout);
         locationsText = root.findViewById(R.id.locationsText);
         addStopText = root.findViewById(R.id.addStopText);
         stopsContainer = root.findViewById(R.id.stopsContainer);
         locationsRecyclerView = root.findViewById(R.id.locationsRecyclerView);
-// Initialize views
-        mapContainer = root.findViewById(R.id.map_container);
 
-        // Initialize Becomap
-        becomap = new Becomap(getContext());
+        setupRecyclerView();
+        setupSearchListeners();
+        setupFromToLayout();
+    }
 
+    private void initializeBecomap() {
+        if (getContext() == null) return;
+        
+        becomap = new Becomap(requireContext());
+        
         // Initialize map with WebView
         becomap.initializeMap(mapContainer, "c079dfa3a77dad13351cfacd95841c2c2780fe08",
                 "f62a59675b2a47ddb75f1f994d88e653",
                 "67dcf5dd2f21c64e3225254f");
 
+        setupBecomapCallback();
+    }
 
-        // Setup RecyclerView
+    private void setupBecomapCallback() {
+        becomap.setCallback(new Becomap.BecomapCallback() {
+            @Override
+            public void onSearchResultsReceived(List<SearchResult> searchResults) {
+                if (getActivity() == null) return;
+                
+                getActivity().runOnUiThread(() -> {
+                    Log.d("MyActivity", "Received " + searchResults.size() + " search results");
+                    if (currentSelectedField == searchEditText) {
+                        showsearchList(searchResults);
+                    } else if (currentSelectedField == fromEditText) {
+                        showforList(searchResults);
+                    } else {
+                        showforList(searchResults);
+                    }
+                    if (!searchResults.isEmpty()) {
+                        Log.d(TAG, "onSearchResultsReceived: " + searchResults.get(0).id);
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (becomap != null) {
+            becomap.onResume();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (becomap != null) {
+            becomap.onPause();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (becomap != null) {
+            becomap.onDestroy();
+        }
+    }
+
+    private void setupRecyclerView() {
         locationsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         locationAdapter = new LocationAdapter(new ArrayList<>(), location -> {
             Log.e( "currentSelectedField: ", String.valueOf(currentSelectedField));
@@ -120,27 +190,9 @@ public class MapFragment extends Fragment {
             }
         });
         locationsRecyclerView.setAdapter(locationAdapter);
-        becomap.setCallback(new Becomap.BecomapCallback() {
-            @Override
-            public void onSearchResultsReceived(List<SearchResult> searchResults) {
-                Log.d("MyActivity", "Received " + searchResults.size() + " search results");
-                if (currentSelectedField == searchEditText) {
-                    showsearchList(searchResults);
-                }
-                else if (currentSelectedField == fromEditText)
-                {
-                    showforList(searchResults);
-                }
-                else {
-                    showforList(searchResults);
-                }
-                Log.d(TAG, "onSearchResultsReceived: "+searchResults.get(0).id);
-            }
-        });
-        // Load locations and stores
-//        loadLocations();
-//        loadStores();
-//         Setup search field click listener
+    }
+
+    private void setupSearchListeners() {
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -152,7 +204,6 @@ public class MapFragment extends Fragment {
                 String query = s.toString().trim();
                 currentSelectedField = searchEditText;
                 becomap.searchLocation(query); // Or debounce this if needed
-//                showLocationList();
             }
 
             @Override
@@ -174,7 +225,6 @@ public class MapFragment extends Fragment {
                 becomap.searchLocation(query);
                 locationsText.setVisibility(View.VISIBLE);
                 // Or debounce this if needed
-//                showLocationList();
             }
 
             @Override
@@ -182,21 +232,9 @@ public class MapFragment extends Fragment {
                 // Optional
             }
         });
-        // Setup from field click listener
-//        fromEditText.setOnClickListener(v -> {
-//
-//        });
+    }
 
-        // Setup to field click listener
-//        toEditText.setOnClickListener(v -> {
-//            currentSelectedField = toEditText;
-//            showLocationList();
-//            locationsText.setVisibility(View.VISIBLE);
-//        });
-
-        // Setup add stop click listener
-        addStopText.setOnClickListener(v -> addStopField());
-
+    private void setupFromToLayout() {
         // Set close icon for from field
         fromLayout.setBoxBackgroundColor(ContextCompat.getColor(getContext(), android.R.color.white));
         fromLayout.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
@@ -207,7 +245,7 @@ public class MapFragment extends Fragment {
             checkAndShowSearchField();
         });
 
-        // Set close icon for to field\
+        // Set close icon for to field
         toLayout.setBoxBackgroundColor(ContextCompat.getColor(getContext(), android.R.color.white));
         toLayout.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
         toLayout.setEndIconDrawable(android.R.drawable.ic_menu_close_clear_cancel);
@@ -217,7 +255,8 @@ public class MapFragment extends Fragment {
             checkAndShowSearchField();
         });
 
-        return root;
+        // Setup add stop click listener
+        addStopText.setOnClickListener(v -> addStopField());
     }
 
     private void addStopField() {
@@ -269,14 +308,10 @@ public class MapFragment extends Fragment {
                     // Optional
                 }
             });
-//            stopEditText.setOnClickListener(v -> {
-//                currentSelectedField = stopEditText;
-//                becomap.searchLocation(query);
-//                locationsText.setVisibility(View.VISIBLE);
-//            });
         }
         stopsContainer.addView(stopLayout);
     }
+
     private void showsearchList(List<SearchResult> searchResult) {
         if (searchResult != null && !searchResult.isEmpty()) {
             SearchResult firstResult = searchResult.get(0);
@@ -297,6 +332,7 @@ public class MapFragment extends Fragment {
             Toast.makeText(requireContext(), "No locations available", Toast.LENGTH_SHORT).show();
         }
     }
+
     private void showforList(List<SearchResult> searchResult) {
         if (searchResult != null && !searchResult.isEmpty()) {
             SearchResult firstResult = searchResult.get(0);
@@ -312,12 +348,9 @@ public class MapFragment extends Fragment {
             locationsRecyclerView.setVisibility(View.VISIBLE);
             locationAdapter.updateLocations(newlocation);
         } else {
-//            Log.e("showsearchList", "Empty or null search result");
             locationsRecyclerView.setVisibility(View.GONE);
-//            Toast.makeText(requireContext(), "No locations available", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     private boolean isDuplicateEntry(String storeName, String storeType) {
         String fullText = (storeName.trim() + " (" + storeType.trim() + ")").toLowerCase();
@@ -360,5 +393,4 @@ public class MapFragment extends Fragment {
             locationsText.setVisibility(View.GONE);
         }
     }
-
 }
