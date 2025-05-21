@@ -1,4 +1,5 @@
 package com.example.becomap_android_new.adapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +37,7 @@ public class LocationAdapter extends RecyclerView.Adapter<LocationAdapter.ViewHo
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Location location = locations.get(position);
+        Log.e( "onBindViewHolder: ", location.getName());
         holder.locationName.setText(location.getName());
         holder.locationType.setText(location.getType());
 
@@ -53,6 +55,7 @@ public class LocationAdapter extends RecyclerView.Adapter<LocationAdapter.ViewHo
 
     public void updateLocations(List<Location> newLocations) {
         this.locations = newLocations;
+        Log.e( "onBindViewHolder: ", newLocations.get(0).getName());
         notifyDataSetChanged();
     }
 

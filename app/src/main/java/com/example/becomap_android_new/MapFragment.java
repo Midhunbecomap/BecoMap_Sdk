@@ -52,7 +52,6 @@ public class MapFragment extends Fragment {
     private List<Location> allLocations = new ArrayList<>();
     private List<Store> allStores = new ArrayList<>();
     private TextInputEditText currentSelectedField;
-
     private int stopCount = 0;
     private TextInputLayout lastSelectedLayout;
     FrameLayout mapContainer;
@@ -74,8 +73,8 @@ public class MapFragment extends Fragment {
         addStopText = root.findViewById(R.id.addStopText);
         stopsContainer = root.findViewById(R.id.stopsContainer);
         locationsRecyclerView = root.findViewById(R.id.locationsRecyclerView);
-        // Initialize views
-         mapContainer = root.findViewById(R.id.map_container);
+// Initialize views
+        mapContainer = root.findViewById(R.id.map_container);
 
         // Initialize Becomap
         becomap = new Becomap(getContext());
@@ -85,18 +84,11 @@ public class MapFragment extends Fragment {
                 "f62a59675b2a47ddb75f1f994d88e653",
                 "67dcf5dd2f21c64e3225254f");
 
-        becomap.setCallback(new Becomap.BecomapCallback() {
-            @Override
-            public void onSearchResultsReceived(List<SearchResult> searchResults) {
-                // Handle the results here
-                Log.d("MyActivity", "Received " + searchResults.size() + " search results");
-                // Update UI or pass data as needed
-                Log.d(TAG, "onSearchResultsReceived: "+searchResults.get(0).id);
-            }
-        });
+
         // Setup RecyclerView
         locationsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         locationAdapter = new LocationAdapter(new ArrayList<>(), location -> {
+            Log.e( "currentSelectedField: ", String.valueOf(currentSelectedField));
             if (location != null) {
                 locationsText.setVisibility(View.GONE);
                 if (isDuplicateEntry(location.getName(), location.getType())) {
@@ -108,15 +100,16 @@ public class MapFragment extends Fragment {
                 if (currentSelectedField == searchEditText) {
                     searchLayout.setVisibility(View.GONE);
                     fromToLayout.setVisibility(View.VISIBLE);
+                    addStopText.setVisibility(View.VISIBLE);
                     fromLayout.setVisibility(View.VISIBLE );
                     toLayout.setVisibility(View.VISIBLE);
                     toEditText.setText(location.getName());
                 } else if (currentSelectedField == fromEditText) {
                     fromEditText.setText(location.getName() + " (" + location.getType() + ")");
                     locationsText.setVisibility(View.GONE);
-                    if (currentSelectedField == fromEditText) {
-                        addStopText.setVisibility(View.VISIBLE);
-                    }
+                    addStopText.setVisibility(View.VISIBLE);
+                    Log.e( "addStopText: ","shown" );
+
                 } else if (currentSelectedField == toEditText) {
                     toEditText.setText(location.getName());
                 } else {
@@ -127,12 +120,27 @@ public class MapFragment extends Fragment {
             }
         });
         locationsRecyclerView.setAdapter(locationAdapter);
-
+        becomap.setCallback(new Becomap.BecomapCallback() {
+            @Override
+            public void onSearchResultsReceived(List<SearchResult> searchResults) {
+                Log.d("MyActivity", "Received " + searchResults.size() + " search results");
+                if (currentSelectedField == searchEditText) {
+                    showsearchList(searchResults);
+                }
+                else if (currentSelectedField == fromEditText)
+                {
+                    showforList(searchResults);
+                }
+                else {
+                    showforList(searchResults);
+                }
+                Log.d(TAG, "onSearchResultsReceived: "+searchResults.get(0).id);
+            }
+        });
         // Load locations and stores
-        loadLocations();
-        loadStores();
-
-        // Setup search field click listener
+//        loadLocations();
+//        loadStores();
+//         Setup search field click listener
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -142,7 +150,9 @@ public class MapFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String query = s.toString().trim();
+                currentSelectedField = searchEditText;
                 becomap.searchLocation(query); // Or debounce this if needed
+//                showLocationList();
             }
 
             @Override
@@ -151,26 +161,38 @@ public class MapFragment extends Fragment {
             }
         });
 
+        fromEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No-op
+            }
 
-//        searchEditText.setOnClickListener(v -> {
-//            becomap.searchLocation(searchEditText.getText().toString());
-//            currentSelectedField = searchEditText;
-////            showLocationList();
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s.toString().trim();
+                currentSelectedField = fromEditText;
+                becomap.searchLocation(query);
+                locationsText.setVisibility(View.VISIBLE);
+                // Or debounce this if needed
+//                showLocationList();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Optional
+            }
+        });
+        // Setup from field click listener
+//        fromEditText.setOnClickListener(v -> {
+//
 //        });
 
-        // Setup from field click listener
-        fromEditText.setOnClickListener(v -> {
-            currentSelectedField = fromEditText;
-            showStoreList();
-            locationsText.setVisibility(View.VISIBLE);
-        });
-
         // Setup to field click listener
-        toEditText.setOnClickListener(v -> {
-            currentSelectedField = toEditText;
-            showLocationList();
-            locationsText.setVisibility(View.VISIBLE);
-        });
+//        toEditText.setOnClickListener(v -> {
+//            currentSelectedField = toEditText;
+//            showLocationList();
+//            locationsText.setVisibility(View.VISIBLE);
+//        });
 
         // Setup add stop click listener
         addStopText.setOnClickListener(v -> addStopField());
@@ -185,7 +207,7 @@ public class MapFragment extends Fragment {
             checkAndShowSearchField();
         });
 
-        // Set close icon for to field
+        // Set close icon for to field\
         toLayout.setBoxBackgroundColor(ContextCompat.getColor(getContext(), android.R.color.white));
         toLayout.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
         toLayout.setEndIconDrawable(android.R.drawable.ic_menu_close_clear_cancel);
@@ -198,14 +220,6 @@ public class MapFragment extends Fragment {
         return root;
     }
 
-    private void setFieldSelected(TextInputLayout layout) {
-        if (lastSelectedLayout != null) {
-            lastSelectedLayout.setBoxStrokeColor(getResources().getColor(android.R.color.darker_gray, null));
-        }
-        layout.setBoxStrokeColor(getResources().getColor(R.color.purple_500, null));
-        lastSelectedLayout = layout;
-    }
-
     private void addStopField() {
         stopCount++;
         String stopName = "Stop " + stopCount;
@@ -213,12 +227,12 @@ public class MapFragment extends Fragment {
         LayoutInflater inflater = LayoutInflater.from(requireContext());
         TextInputLayout stopLayout = (TextInputLayout) inflater.inflate(R.layout.stop_field_layout, stopsContainer, false);
         stopLayout.setHint(stopName);
-        stopLayout.setHintEnabled(false);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         layoutParams.setMargins(0, 0, 0, 8);
         stopLayout.setLayoutParams(layoutParams);
+        stopLayout.setHintEnabled(false);
 
         // Add close icon to stop field
         stopLayout.setBoxBackgroundColor(ContextCompat.getColor(getContext(), android.R.color.white));
@@ -230,106 +244,80 @@ public class MapFragment extends Fragment {
         });
 
         TextInputEditText stopEditText = (TextInputEditText) stopLayout.getEditText();
+
         if (stopEditText != null) {
             stopEditText.setHint(stopName);
             stopEditText.setId(View.generateViewId());
-            stopEditText.setFocusable(false);
-            stopEditText.setTextColor(getResources().getColor(android.R.color.black));
+            stopEditText.setFocusable(true);
             stopEditText.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
-            stopEditText.setOnClickListener(v -> {
-                currentSelectedField = stopEditText;
-                showStoreList();
-                locationsText.setVisibility(View.VISIBLE);
+            stopEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    // No-op
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    String query = s.toString().trim();
+                    currentSelectedField = stopEditText;
+                     becomap.searchLocation(query);
+                      locationsText.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // Optional
+                }
             });
+//            stopEditText.setOnClickListener(v -> {
+//                currentSelectedField = stopEditText;
+//                becomap.searchLocation(query);
+//                locationsText.setVisibility(View.VISIBLE);
+//            });
         }
         stopsContainer.addView(stopLayout);
     }
+    private void showsearchList(List<SearchResult> searchResult) {
+        if (searchResult != null && !searchResult.isEmpty()) {
+            SearchResult firstResult = searchResult.get(0);
 
-    private void showLocationList() {
-        if (allLocations != null && !allLocations.isEmpty()) {
+            List<Location> newlocation = new ArrayList<>();
+            for (SearchResult store : searchResult) {
+                Location location = new Location();
+                location.setName(store.getId());
+                location.setType(store.getType());
+                newlocation.add(location);
+            }
+            Log.e( "showsearchList: ", String.valueOf(newlocation.size()));
             locationsRecyclerView.setVisibility(View.VISIBLE);
-            locationAdapter.updateLocations(allLocations);
+            locationAdapter.updateLocations(newlocation);
         } else {
+            Log.e("showsearchList", "Empty or null search result");
+            locationsRecyclerView.setVisibility(View.GONE);
             Toast.makeText(requireContext(), "No locations available", Toast.LENGTH_SHORT).show();
         }
     }
+    private void showforList(List<SearchResult> searchResult) {
+        if (searchResult != null && !searchResult.isEmpty()) {
+            SearchResult firstResult = searchResult.get(0);
 
-    private void showStoreList() {
-        if (allStores != null && !allStores.isEmpty()) {
-            locationsRecyclerView.setVisibility(View.VISIBLE);
-            List<Location> storeLocations = new ArrayList<>();
-            for (Store store : allStores) {
+            List<Location> newlocation = new ArrayList<>();
+            for (SearchResult store : searchResult) {
                 Location location = new Location();
-                location.setName(store.getName());
+                location.setName(store.getId());
                 location.setType(store.getType());
-                storeLocations.add(location);
+                newlocation.add(location);
             }
-            locationAdapter.updateLocations(storeLocations);
+            Log.e( "showsearchList: ", String.valueOf(newlocation.size()));
+            locationsRecyclerView.setVisibility(View.VISIBLE);
+            locationAdapter.updateLocations(newlocation);
         } else {
-            Toast.makeText(requireContext(), "No stores available", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void loadLocations() {
-        try {
-            InputStream is = requireContext().getAssets().open("locations.json");
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            String json = new String(buffer, StandardCharsets.UTF_8);
-
-            Gson gson = new Gson();
-            Type type = new TypeToken<List<Location>>() {}.getType();
-            allLocations = gson.fromJson(json, type);
-        } catch (IOException e) {
-            Log.e(TAG, "Error reading locations.json", e);
-        }
-    }
-
-    private void loadStores() {
-        try {
-            InputStream is = requireContext().getAssets().open("store.json");
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            String json = new String(buffer, StandardCharsets.UTF_8);
-
-            Gson gson = new Gson();
-            Type type = new TypeToken<StoreResponse>() {}.getType();
-            StoreResponse response = gson.fromJson(json, type);
-            if (response != null && response.getStores() != null) {
-                allStores = response.getStores();
-            }
-        } catch (IOException e) {
-            Log.e(TAG, "Error reading store.json", e);
-        }
-    }
-
-    private void onLocationSelected(Location location) {
-        if (location != null) {
-            String selectedText = location.getName().trim() + " (" + location.getType().trim() + ")";
-            if (isDuplicateEntry(location.getName(), location.getType())) {
-                Toast.makeText(requireContext(), "You selected duplicate entry", Toast.LENGTH_SHORT).show();
-                locationsRecyclerView.setVisibility(View.GONE);
-                locationsText.setVisibility(View.GONE);
-                return;
-            }
-            locationsText.setVisibility(View.GONE);
-            if (currentSelectedField == searchEditText) {
-                searchLayout.setVisibility(View.GONE);
-                fromToLayout.setVisibility(View.VISIBLE);
-                toEditText.setText(location.getName());
-            } else if (currentSelectedField != null) {
-                currentSelectedField.setText(selectedText);
-                if (currentSelectedField == fromEditText) {
-                    addStopText.setVisibility(View.VISIBLE);
-                }
-            }
+//            Log.e("showsearchList", "Empty or null search result");
             locationsRecyclerView.setVisibility(View.GONE);
+//            Toast.makeText(requireContext(), "No locations available", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     private boolean isDuplicateEntry(String storeName, String storeType) {
         String fullText = (storeName.trim() + " (" + storeType.trim() + ")").toLowerCase();
@@ -357,8 +345,10 @@ public class MapFragment extends Fragment {
         if (fromGone && toGone )
         {
             addStopText.setVisibility(View.VISIBLE);
+            Log.e( "addStopText: ","shown c" );
         }else {
             addStopText.setVisibility(View.GONE);
+            Log.e( "addStopText: ","hide c" );
         }
 
 
@@ -366,57 +356,9 @@ public class MapFragment extends Fragment {
         if (fromGone && toGone && stopsGone) {
             searchLayout.setVisibility(View.VISIBLE);
             addStopText.setVisibility(View.GONE);
+            Log.e( "addStopText: ","shown c s" );
             locationsText.setVisibility(View.GONE);
         }
     }
 
-
-
-    private static class StoreResponse {
-        private List<Store> stores;
-
-        public List<Store> getStores() {
-            return stores;
-        }
-    }
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (becomap != null) {
-            becomap.onStart();
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (becomap != null) {
-            becomap.onResume();
-        }
-    }
-
-    @Override
-    public void onPause() {
-        if (becomap != null) {
-            becomap.onPause();
-            super.onPause();
-        }
-    }
-
-    @Override
-    public void onStop() {
-        if (becomap != null) {
-            becomap.onStop();
-            super.onStop();
-        }
-    }
-
-    // Use onDestroyView() if becomap is tied to view lifecycle
-    @Override
-    public void onDestroyView() {
-        if (becomap != null) {
-            becomap.onDestroy();
-            super.onDestroyView();
-        }
-    }
 }
