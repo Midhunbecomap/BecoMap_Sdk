@@ -175,7 +175,7 @@ public class MapFragment extends Fragment {
                     toLayout.setVisibility(View.VISIBLE);
                     toEditText.setText(location.getName());
                 } else if (currentSelectedField == fromEditText) {
-                    fromEditText.setText(location.getName() + " (" + location.getType() + ")");
+                    fromEditText.setText(location.getName());
                     locationsText.setVisibility(View.GONE);
                     addStopText.setVisibility(View.VISIBLE);
                     Log.e( "addStopText: ","shown" );
@@ -319,7 +319,7 @@ public class MapFragment extends Fragment {
             List<Location> newlocation = new ArrayList<>();
             for (SearchResult store : searchResult) {
                 Location location = new Location();
-                location.setName(store.getId());
+                location.setName(store.getName());
                 location.setType(store.getType());
                 newlocation.add(location);
             }
@@ -340,7 +340,7 @@ public class MapFragment extends Fragment {
             List<Location> newlocation = new ArrayList<>();
             for (SearchResult store : searchResult) {
                 Location location = new Location();
-                location.setName(store.getId());
+                location.setName(store.getName());
                 location.setType(store.getType());
                 newlocation.add(location);
             }
