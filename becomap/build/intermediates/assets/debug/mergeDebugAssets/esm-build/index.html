@@ -1,5 +1,14 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Becomap UMD SDK</title><style>body, html { margin: 0; padding: 0; height: 100%; }
-    #mapContainer { width: 100%; height: 100%; }</style></head><body><div id="mapContainer"></div><script src="https://unpkg.com/maplibre-gl@4.4.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script><script>window._mapView = null;
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Becomap UMD SDK</title><style>body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    #mapContainer {
+      width: 100%;
+      height: 100%;
+    }</style></head><body><div id="mapContainer"></div><script src="https://unpkg.com/maplibre-gl@4.4.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script><script>window._mapView = null;
     window._site = null;
 
     function notifyNative(type, payload = null) {
@@ -26,7 +35,7 @@
         const mapOptions = { zoom: 18.5 };
         window._site = await window.becomap.getSite(siteOptions);
         window._mapView = await window.becomap.getMapView(container, window._site, mapOptions);
-        notifyNative("onRenderComplete");
+        notifyNative("onRenderComplete", { site: window._site.toJSON() });
       } catch (err) {
         console.error('init error', err);
         notifyNative("initError", { message: err.message });
@@ -105,4 +114,4 @@
     globalThis.walkThrough = (segment) => _mapView?.routeController?.walkThrough(segment);
     globalThis.stopWalking = () => _mapView?.routeController?.stopWalking();
     globalThis.showStep = (step) => _mapView?.routeController?.showStep(step);
-    globalThis.clearAllRoutes = () => _mapView?.routeController?.clearAllRoutes();</script><script defer="defer" src="becomap.bf99455a2ac872d6f982.js"></script><script defer="defer" src="becomap.6021778c8fae09e50523.js"></script><script defer="defer" src="becomap.d7a9c066c12abe303463.js"></script><script defer="defer" src="becomap.eaeaef66319a6cfacdc9.js"></script><script defer="defer" src="becomap.60d626b2291d03feb07e.js"></script><script defer="defer" src="becomap.8961ea4e79a621e2bed1.js"></script><script defer="defer" src="becomap.070d22ce3c820f06412c.js"></script><script defer="defer" src="becomap.125e8d8224f1b63c14a8.js"></script><script defer="defer" src="becomap.a2ca64b945283df10f1d.js"></script><script defer="defer" src="becomap.87d5e25b90c37a440f46.js"></script><script defer="defer" src="becomap.5ffc1862de12859e341f.js"></script><script defer="defer" src="becomap.8e8af83d8e81f7d49968.js"></script><script defer="defer" src="becomap.cca92cbb32c4d9535561.js"></script><script defer="defer" src="becomap.514db33005b23bc79646.js"></script></body></html>
+    globalThis.clearAllRoutes = () => _mapView?.routeController?.clearAllRoutes();</script><script defer="defer" src="becomap.b602e5ef36620525355c.js"></script><script defer="defer" src="becomap.8ad3f1bccc89bd1c668f.js"></script><script defer="defer" src="becomap.7d698d9a5866d41ebc5b.js"></script><script defer="defer" src="becomap.bf5e6ecdab4f9956d31b.js"></script><script defer="defer" src="becomap.1091a06a845ff86ebaac.js"></script><script defer="defer" src="becomap.de16ccb4cca49288aaaf.js"></script><script defer="defer" src="becomap.dc5b3fb90bbe89fe592b.js"></script><script defer="defer" src="becomap.735fe48487c55cc32eec.js"></script><script defer="defer" src="becomap.80ed8ef628a9a01d1e22.js"></script><script defer="defer" src="becomap.9482ecdfb301b746df8b.js"></script><script defer="defer" src="becomap.f6a340241ab903e98049.js"></script><script defer="defer" src="becomap.4ca87893497d3c8679d7.js"></script><script defer="defer" src="becomap.9f64bf7833f5672632f3.js"></script><script defer="defer" src="becomap.3403af25a12d715a2d1f.js"></script></body></html>

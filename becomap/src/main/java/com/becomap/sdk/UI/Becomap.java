@@ -55,6 +55,16 @@ public class Becomap {
 
     public void initializeMap(ViewGroup container, String clientId, String clientSecret, String siteIdentifier) {
         this.rootContainer = container;
+        rootContainer.postDelayed(() -> {
+            int width = rootContainer.getWidth();
+            int height = rootContainer.getHeight();
+            Log.d("Becomap", "Container size: " + width + "x" + height);
+
+            if (webView != null) {
+                Log.d("Becomap", "WebView visibility: " + webView.getVisibility());
+            }
+        }, 1000);
+
         jsConfig = new BecoWebInterface(clientId, clientSecret, siteIdentifier);
         // Save credentials in ViewModel
         viewModel.setCredentials(clientId, clientSecret, siteIdentifier);
@@ -147,10 +157,13 @@ public class Becomap {
                         if (mContext instanceof Activity) {
                             ((Activity) mContext).runOnUiThread(() -> {
                                 Log.d(TAG, "Map Render Complete");
-                                // Call getLocations() from Android after render is complete
-                                if (webView != null) {
-                                    jsConfig.executegetalllocation(webView);
+                                if (callback != null) {
+                                    callback.onMapRenderComplete();
                                 }
+                                // Call getLocations() from Android after render is complete
+//                                if (webView != null) {
+//                                    jsConfig.executegetalllocation(webView);
+//                                }
                             });
                         }
                         break;
@@ -220,6 +233,7 @@ public class Becomap {
 
     public interface BecomapCallback {
         void onSearchResultsReceived(List<SearchResult> searchResults);
+        void onMapRenderComplete();
     }
 
     // Lifecycle hooks

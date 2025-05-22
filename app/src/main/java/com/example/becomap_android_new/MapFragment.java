@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,6 +59,8 @@ public class MapFragment extends Fragment {
     private TextInputLayout toLayout;
     FrameLayout mapContainer;
     private Becomap becomap;
+    private boolean isProgrammaticChange = false;
+    ProgressBar progressBar;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -67,7 +70,7 @@ public class MapFragment extends Fragment {
         // Initialize map container first
         mapContainer = root.findViewById(R.id.map_container);
         mapContainer.setVisibility(View.VISIBLE);
-        
+        Toast.makeText(getContext(), "Map is loading please wait", Toast.LENGTH_SHORT).show();
         // Initialize other views after map
         initializeViews(root);
         
@@ -89,6 +92,7 @@ public class MapFragment extends Fragment {
         addStopText = root.findViewById(R.id.addStopText);
         stopsContainer = root.findViewById(R.id.stopsContainer);
         locationsRecyclerView = root.findViewById(R.id.locationsRecyclerView);
+        progressBar=root.findViewById(R.id.progressbar);
 
         setupRecyclerView();
         setupSearchListeners();
@@ -127,6 +131,12 @@ public class MapFragment extends Fragment {
                         Log.d(TAG, "onSearchResultsReceived: " + searchResults.get(0).id);
                     }
                 });
+            }
+
+            @Override
+            public void onMapRenderComplete() {
+                searchLayout.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.GONE);
             }
         });
     }
@@ -169,6 +179,9 @@ public class MapFragment extends Fragment {
                 }
                 if (currentSelectedField == searchEditText) {
                     searchLayout.setVisibility(View.GONE);
+                    isProgrammaticChange=true;
+                    searchEditText.setText("");
+                    isProgrammaticChange=false;
                     fromToLayout.setVisibility(View.VISIBLE);
                     addStopText.setVisibility(View.VISIBLE);
                     fromLayout.setVisibility(View.VISIBLE );
@@ -201,9 +214,14 @@ public class MapFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (isProgrammaticChange) {
+                    return; // Ignore programmatic changes
+                }
                 String query = s.toString().trim();
                 currentSelectedField = searchEditText;
-                becomap.searchLocation(query); // Or debounce this if needed
+                if (query!=null || !query.isEmpty()) {
+                    becomap.searchLocation(query); // Or debounce this if needed
+                }
             }
 
             @Override
@@ -220,9 +238,17 @@ public class MapFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (isProgrammaticChange) {
+                    return; // Ignore programmatic changes
+                }
+
                 String query = s.toString().trim();
                 currentSelectedField = fromEditText;
-                becomap.searchLocation(query);
+
+                if (!query.isEmpty()) {
+                    becomap.searchLocation(query);
+                }
+
                 locationsText.setVisibility(View.VISIBLE);
                 // Or debounce this if needed
             }
@@ -240,8 +266,12 @@ public class MapFragment extends Fragment {
         fromLayout.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
         fromLayout.setEndIconDrawable(android.R.drawable.ic_menu_close_clear_cancel);
         fromLayout.setEndIconOnClickListener(v -> {
+            locationsRecyclerView.setVisibility(View.GONE);
             fromLayout.setVisibility(View.GONE);
+            currentSelectedField=null;
+            isProgrammaticChange = true;
             fromEditText.setText("");
+            isProgrammaticChange = false;
             checkAndShowSearchField();
         });
 
@@ -250,8 +280,12 @@ public class MapFragment extends Fragment {
         toLayout.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
         toLayout.setEndIconDrawable(android.R.drawable.ic_menu_close_clear_cancel);
         toLayout.setEndIconOnClickListener(v -> {
+            locationsRecyclerView.setVisibility(View.GONE);
             toLayout.setVisibility(View.GONE);
+            currentSelectedField=null;
+            isProgrammaticChange = true;
             toEditText.setText("");
+            isProgrammaticChange = false;
             checkAndShowSearchField();
         });
 
@@ -278,7 +312,11 @@ public class MapFragment extends Fragment {
         stopLayout.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
         stopLayout.setEndIconDrawable(android.R.drawable.ic_menu_close_clear_cancel);
         stopLayout.setEndIconOnClickListener(v -> {
+            locationsRecyclerView.setVisibility(View.GONE);
+            currentSelectedField=null;
+            isProgrammaticChange = true;
             stopsContainer.removeView(stopLayout);
+            isProgrammaticChange = false;
             checkAndShowSearchField();
         });
 
@@ -297,9 +335,14 @@ public class MapFragment extends Fragment {
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (isProgrammaticChange) {
+                        return; // Ignore programmatic changes
+                    }
                     String query = s.toString().trim();
                     currentSelectedField = stopEditText;
-                     becomap.searchLocation(query);
+                    if (query!=null || !query.isEmpty()) {
+                        becomap.searchLocation(query); // Or debounce this if needed
+                    }
                       locationsText.setVisibility(View.VISIBLE);
                 }
 
