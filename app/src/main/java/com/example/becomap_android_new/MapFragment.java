@@ -18,6 +18,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -84,6 +85,31 @@ public class MapFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_map, container, false);
 
         initializeViews(root);
+        requireActivity().getOnBackPressedDispatcher().addCallback(
+                getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        // Custom back press logic here
+                        if (btn_floor_clicked || btn_draw_clicked || btn_inizilize_clicked) {
+                            btn_floor_clicked=false;
+                            btn_draw_clicked=false;
+                            btn_inizilize_clicked=false;
+                          mapContainer.setVisibility(View.GONE);
+                          searchLayout.setVisibility(View.GONE);
+                          fromToLayout.setVisibility(View.GONE);
+                          floor_spinner.setVisibility(View.GONE);
+                          ButtonLayout.setVisibility(View.VISIBLE);
+                            return; // Don't pop the fragment
+                        }
+
+
+                        // If nothing handled, allow default back behavior
+                        setEnabled(false); // Let the system handle back press
+                        requireActivity().onBackPressed();
+                    }
+                }
+        );
 
         return root;
     }
@@ -190,15 +216,12 @@ public class MapFragment extends Fragment {
             public void onMapRenderComplete() {
 //
                 if (btn_floor_clicked){
-                    btn_floor_clicked=false;
                     becomap.getFloors();
                     progressBar.setVisibility(View.GONE);
                 }else if(btn_draw_clicked) {
-                    btn_draw_clicked=false;
                     searchLayout.setVisibility(View.VISIBLE);
                     progressBar.setVisibility(View.GONE);
                 }else {
-                    btn_inizilize_clicked=false;
                     progressBar.setVisibility(View.GONE);
                 }
 
@@ -330,6 +353,7 @@ public class MapFragment extends Fragment {
             becomap.onDestroy();
         }
     }
+
 
     private void setupRecyclerView() {
         locationsRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
