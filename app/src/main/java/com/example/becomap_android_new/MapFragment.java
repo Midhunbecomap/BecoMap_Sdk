@@ -8,9 +8,13 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +25,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.becomap.sdk.UI.Becomap;
+import com.becomap.sdk.model.BuildingsModels.BuildingModel;
+import com.becomap.sdk.model.BuildingsModels.FloorModel;
+import com.becomap.sdk.model.Category;
+import com.becomap.sdk.model.Language.LanguageModel;
+import com.becomap.sdk.model.LocationModel;
+import com.becomap.sdk.model.Questions.BCQuestion;
 import com.becomap.sdk.model.SearchResult;
 import com.example.becomap_android_new.adapter.LocationAdapter;
 import com.example.becomap_android_new.model.Location;
@@ -61,21 +71,19 @@ public class MapFragment extends Fragment {
     private Becomap becomap;
     private boolean isProgrammaticChange = false;
     ProgressBar progressBar;
+    LinearLayout ButtonLayout;
+    Button btn_initialize_map,btn_floors,btn_draw_map;
+    boolean btn_inizilize_clicked=false;
+    boolean btn_floor_clicked=false;
+    boolean btn_draw_clicked=false;
+    Spinner floor_spinner;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_map, container, false);
 
-        // Initialize map container first
-        mapContainer = root.findViewById(R.id.map_container);
-        mapContainer.setVisibility(View.VISIBLE);
-        Toast.makeText(getContext(), "Map is loading please wait", Toast.LENGTH_SHORT).show();
-        // Initialize other views after map
         initializeViews(root);
-        
-        // Initialize Becomap after views
-        initializeBecomap();
 
         return root;
     }
@@ -93,17 +101,62 @@ public class MapFragment extends Fragment {
         stopsContainer = root.findViewById(R.id.stopsContainer);
         locationsRecyclerView = root.findViewById(R.id.locationsRecyclerView);
         progressBar=root.findViewById(R.id.progressbar);
+        mapContainer = root.findViewById(R.id.map_container);
+        ButtonLayout=root.findViewById(R.id.ButtonLayout);
+        btn_initialize_map=root.findViewById(R.id.btn_initialize_map);
+        btn_floors=root.findViewById(R.id.btn_floors);
+        btn_draw_map=root.findViewById(R.id.btn_draw_map);
+        floor_spinner = root.findViewById(R.id.spinner_floors);
 
-        setupRecyclerView();
-        setupSearchListeners();
-        setupFromToLayout();
+        btn_initialize_map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                initializeBecomap();
+                searchEditText.setText("");
+                toEditText.setText("");
+                fromEditText.setText("");
+                btn_inizilize_clicked=true;
+                mapContainer.setVisibility(View.VISIBLE);
+                ButtonLayout.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
+            }
+        });
+
+        btn_floors.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                initializeBecomap();
+                searchEditText.setText("");
+                toEditText.setText("");
+                fromEditText.setText("");
+                btn_floor_clicked=true;
+                mapContainer.setVisibility(View.VISIBLE);
+                ButtonLayout.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
+            }
+        });
+        btn_draw_map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                initializeBecomap();
+                btn_draw_clicked=true;
+                mapContainer.setVisibility(View.VISIBLE);
+                ButtonLayout.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
+                setupRecyclerView();
+                setupSearchListeners();
+                setupFromToLayout();
+            }
+        });
+
+
     }
 
     private void initializeBecomap() {
         if (getContext() == null) return;
-        
+
         becomap = new Becomap(requireContext());
-        
+
         // Initialize map with WebView
         becomap.initializeMap(mapContainer, "c079dfa3a77dad13351cfacd95841c2c2780fe08",
                 "f62a59675b2a47ddb75f1f994d88e653",
@@ -117,7 +170,7 @@ public class MapFragment extends Fragment {
             @Override
             public void onSearchResultsReceived(List<SearchResult> searchResults) {
                 if (getActivity() == null) return;
-                
+
                 getActivity().runOnUiThread(() -> {
                     Log.d("MyActivity", "Received " + searchResults.size() + " search results");
                     if (currentSelectedField == searchEditText) {
@@ -135,9 +188,122 @@ public class MapFragment extends Fragment {
 
             @Override
             public void onMapRenderComplete() {
-                searchLayout.setVisibility(View.VISIBLE);
-                progressBar.setVisibility(View.GONE);
+//
+                if (btn_floor_clicked){
+                    btn_floor_clicked=false;
+                    becomap.getFloors();
+                    progressBar.setVisibility(View.GONE);
+                }else if(btn_draw_clicked) {
+                    btn_draw_clicked=false;
+                    searchLayout.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.GONE);
+                }else {
+                    btn_inizilize_clicked=false;
+                    progressBar.setVisibility(View.GONE);
+                }
+
             }
+            @Override
+            public void onFloors_Received(List<FloorModel> floors) {
+                if (floors == null || floors.isEmpty()) {
+                    Log.e("onFloors_Received", "Received null or empty floor list");
+                    floor_spinner.setVisibility(View.GONE);
+                    return;
+                }
+
+                Log.e("onFloors_Received: ", floors.get(0).shortName);
+                getActivity().runOnUiThread(() -> {
+                    floor_spinner.setVisibility(View.VISIBLE);
+
+                List<String> shortNames = new ArrayList<>();
+                for (FloorModel floor : floors) {
+                    shortNames.add(floor.getShortName());
+                }
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        getContext(),
+                        R.layout.spinner_item,
+                        shortNames
+                );
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                floor_spinner.setAdapter(adapter);
+
+                floor_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        FloorModel selectedFloor = floors.get(position);
+                        Log.e("onFloors_Received: sa", selectedFloor.id);
+                        becomap.selectFloor(selectedFloor.id);
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        // Optional
+                    }
+                });
+                });
+            }
+            @Override
+            public void onSiteIdAvailable(String siteId) {
+                Log.e( "onSiteIdAvailable: ",siteId );
+            }
+
+            @Override
+            public void onSiteNameAvailable(String sitename) {
+
+            }
+
+            @Override
+            public void onBuildingsReceived(List<BuildingModel> buildingModels) {
+            }
+
+            @Override
+            public void onDefaultFloorReceived(FloorModel defaultFloor) {
+
+            }
+
+            @Override
+            public void onLanguagesReceived(List<LanguageModel> languagesa) {
+
+            }
+
+            @Override
+            public void onCurrentFloorReceived(FloorModel current) {
+
+            }
+
+            @Override
+            public void onCategoriesReceived(List<Category> categories) {
+
+            }
+
+            @Override
+            public void onLocationsReceived(List<LocationModel> locations) {
+
+            }
+
+            @Override
+            public void onAllAmenitiesReceived(List<LocationModel> amenities) {
+
+            }
+
+            @Override
+            public void onAmenityTypesReceived(List<String> amenityTypes) {
+
+            }
+
+            @Override
+            public void onSurveyQuestionsReceived(List<BCQuestion> questions) {
+
+            }
+
+            @Override
+            public void onSessionIdReceived(String sessionId) {
+
+            }
+
+
+
         });
     }
 

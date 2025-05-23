@@ -70,4 +70,123 @@ public class BecoWebInterface {
         String jsCall = String.format("javascript:searchForLocations('%s', '%s')", value, callbackId);
         webView.post(() -> webView.evaluateJavascript(jsCall, null));
     }
+
+    public void injectGetSiteIdFunction(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getSiteId");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getSiteId()", null);
+    }
+
+    public void injectGetSiteNameFunction(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getSitename");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getSiteName()", null);
+    }
+
+    public void GetBuildinsFunction(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject GetBuildins");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getBuildings()", null);
+    }
+
+    public void GetDefaultFloor(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getDefaultFloor");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getDefaultFloor()", null);
+    }
+    public void GetLanguages(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getLanguages");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getLanguages()", null);
+    }
+    public void GetCurrentFloor(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getCurrentFloor");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getCurrentFloor()", null);
+    }
+
+    public void GetCategories(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getCategories");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getCategories()", null);
+    }
+
+    public void GetAllAmenities(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getAllAmenities");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getAllAmenities()", null);
+    }
+
+    public void GetAmenities(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getAmenities");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getAmenities()", null);
+    }
+    public void GetQuestions(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getQuestions");
+            return;
+        }
+
+        webView.evaluateJavascript("javascript:getQuestions()", null);
+    }
+
+    public void GetSessionId(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject getSessionId");
+            return;
+        }
+
+        // This will trigger the JS async function that calls into native via _mapView.getSessionId()
+        webView.evaluateJavascript("javascript:globalThis.getSessionId()", null);
+    }
+
+    public void GetHappenings(WebView webView,String value) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute searchlocation");
+            return;
+        }
+
+        String jsCall = String.format("javascript:getHappenings('%s')", value);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+
+    public void selectFloor(WebView webView, String rawFloorJson) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute selectFloor");
+            return;
+        }
+
+        // Make sure to escape any double quotes or backslashes in the JSON string
+        String jsCall = String.format("javascript:selectFloorWithId('%s')", rawFloorJson);
+        Log.e(TAG, "jsCall: "+jsCall );
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
 }
