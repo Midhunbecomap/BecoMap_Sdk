@@ -1,4 +1,4 @@
-package com.example.becomap_android_new;
+package com.example.becomap_android_new.ui.fragments;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.example.becomap_android_new.R;
 import com.example.becomap_android_new.adapter.StoreAdapter;
 import com.example.becomap_android_new.model.Store;
 import com.google.gson.Gson;

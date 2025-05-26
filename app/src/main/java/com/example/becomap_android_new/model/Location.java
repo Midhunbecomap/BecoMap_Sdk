@@ -99,4 +99,8 @@ public class Location {
     // Add setter methods
     public void setName(String name) { this.name = name; }
     public void setType(String type) { this.type = type; }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

@@ -1,24 +1,18 @@
-package com.example.becomap_android_new;
+package com.example.becomap_android_new.ui.fragments;
 
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -32,20 +26,18 @@ import com.becomap.sdk.model.Category;
 import com.becomap.sdk.model.Language.LanguageModel;
 import com.becomap.sdk.model.LocationModel;
 import com.becomap.sdk.model.Questions.BCQuestion;
+import com.becomap.sdk.model.Route;
 import com.becomap.sdk.model.SearchResult;
+import com.example.becomap_android_new.R;
+import com.example.becomap_android_new.adapter.FloorAdapter;
 import com.example.becomap_android_new.adapter.LocationAdapter;
 import com.example.becomap_android_new.model.Location;
 import com.example.becomap_android_new.model.Store;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,44 +64,45 @@ public class MapFragment extends Fragment {
     private Becomap becomap;
     private boolean isProgrammaticChange = false;
     ProgressBar progressBar;
-    LinearLayout ButtonLayout;
-    Button btn_initialize_map,btn_floors,btn_draw_map;
-    boolean btn_inizilize_clicked=false;
-    boolean btn_floor_clicked=false;
-    boolean btn_draw_clicked=false;
-    Spinner floor_spinner;
-
+//    Spinner floor_spinner;
+    MaterialButton floor;
+    private RecyclerView floorRecycler;
+    private FloorAdapter adapter;
+    String startid="";
+    String toid="";
+    List<String> waypoints=new ArrayList<>();
+    MaterialButton go;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_map, container, false);
 
         initializeViews(root);
-        requireActivity().getOnBackPressedDispatcher().addCallback(
-                getViewLifecycleOwner(),
-                new OnBackPressedCallback(true) {
-                    @Override
-                    public void handleOnBackPressed() {
-                        // Custom back press logic here
-                        if (btn_floor_clicked || btn_draw_clicked || btn_inizilize_clicked) {
-                            btn_floor_clicked=false;
-                            btn_draw_clicked=false;
-                            btn_inizilize_clicked=false;
-                          mapContainer.setVisibility(View.GONE);
-                          searchLayout.setVisibility(View.GONE);
-                          fromToLayout.setVisibility(View.GONE);
-                          floor_spinner.setVisibility(View.GONE);
-                          ButtonLayout.setVisibility(View.VISIBLE);
-                            return; // Don't pop the fragment
-                        }
-
-
-                        // If nothing handled, allow default back behavior
-                        setEnabled(false); // Let the system handle back press
-                        requireActivity().onBackPressed();
-                    }
-                }
-        );
+//        requireActivity().getOnBackPressedDispatcher().addCallback(
+//                getViewLifecycleOwner(),
+//                new OnBackPressedCallback(true) {
+//                    @Override
+//                    public void handleOnBackPressed() {
+//                        // Custom back press logic here
+//                        if (btn_floor_clicked || btn_draw_clicked || btn_inizilize_clicked) {
+//                            btn_floor_clicked=false;
+//                            btn_draw_clicked=false;
+//                            btn_inizilize_clicked=false;
+//                          mapContainer.setVisibility(View.GONE);
+//                          searchLayout.setVisibility(View.GONE);
+//                          fromToLayout.setVisibility(View.GONE);
+//                          floor_spinner.setVisibility(View.GONE);
+//                          ButtonLayout.setVisibility(View.VISIBLE);
+//                            return; // Don't pop the fragment
+//                        }
+//
+//
+//                        // If nothing handled, allow default back behavior
+//                        setEnabled(false); // Let the system handle back press
+//                        requireActivity().onBackPressed();
+//                    }
+//                }
+//        );
 
         return root;
     }
@@ -128,52 +121,71 @@ public class MapFragment extends Fragment {
         locationsRecyclerView = root.findViewById(R.id.locationsRecyclerView);
         progressBar=root.findViewById(R.id.progressbar);
         mapContainer = root.findViewById(R.id.map_container);
-        ButtonLayout=root.findViewById(R.id.ButtonLayout);
-        btn_initialize_map=root.findViewById(R.id.btn_initialize_map);
-        btn_floors=root.findViewById(R.id.btn_floors);
-        btn_draw_map=root.findViewById(R.id.btn_draw_map);
-        floor_spinner = root.findViewById(R.id.spinner_floors);
+//        floor_spinner = root.findViewById(R.id.spinner_floors);
+        floor=root.findViewById(R.id.floor);
+        floorRecycler = root.findViewById(R.id.floor_recycler);
+        go=root.findViewById(R.id.go_button);
+        floor.setVisibility(View.GONE);
+        floorRecycler.setVisibility(View.GONE);
+        initializeBecomap();
+        setupRecyclerView();
+        setupSearchListeners();
+        setupFromToLayout();
+        mapContainer.setVisibility(View.VISIBLE);
+        floor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                floorRecycler.setVisibility(View.VISIBLE);
+                Log.e(TAG, "onClick: visible" );
+            }
+        });
+        go.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
-        btn_initialize_map.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                initializeBecomap();
-                searchEditText.setText("");
-                toEditText.setText("");
-                fromEditText.setText("");
-                btn_inizilize_clicked=true;
-                mapContainer.setVisibility(View.VISIBLE);
-                ButtonLayout.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
+                Log.e( "angry bird: ",String.valueOf(startid) );
+                Log.e( "angry bird:: 2",String.valueOf(toid) );
+                becomap.getroute(startid,toid,waypoints);
             }
         });
+//        btn_initialize_map.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//
+//                searchEditText.setText("");
+//                toEditText.setText("");
+//                fromEditText.setText("");
+//                btn_inizilize_clicked=true;
+//                mapContainer.setVisibility(View.VISIBLE);
+//                ButtonLayout.setVisibility(View.GONE);
+//                progressBar.setVisibility(View.VISIBLE);
+//            }
+//        });
 
-        btn_floors.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                initializeBecomap();
-                searchEditText.setText("");
-                toEditText.setText("");
-                fromEditText.setText("");
-                btn_floor_clicked=true;
-                mapContainer.setVisibility(View.VISIBLE);
-                ButtonLayout.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
-            }
-        });
-        btn_draw_map.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                initializeBecomap();
-                btn_draw_clicked=true;
-                mapContainer.setVisibility(View.VISIBLE);
-                ButtonLayout.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
-                setupRecyclerView();
-                setupSearchListeners();
-                setupFromToLayout();
-            }
-        });
+//        btn_floors.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                initializeBecomap();
+//                searchEditText.setText("");
+//                toEditText.setText("");
+//                fromEditText.setText("");
+//                btn_floor_clicked=true;
+//                mapContainer.setVisibility(View.VISIBLE);
+//                ButtonLayout.setVisibility(View.GONE);
+//                progressBar.setVisibility(View.VISIBLE);
+//            }
+//        });
+//        btn_draw_map.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                initializeBecomap();
+//                btn_draw_clicked=true;
+//                mapContainer.setVisibility(View.VISIBLE);
+//                ButtonLayout.setVisibility(View.GONE);
+//                progressBar.setVisibility(View.VISIBLE);
+//
+//            }
+//        });
 
 
     }
@@ -214,58 +226,77 @@ public class MapFragment extends Fragment {
 
             @Override
             public void onMapRenderComplete() {
-//
-                if (btn_floor_clicked){
                     becomap.getFloors();
                     progressBar.setVisibility(View.GONE);
-                }else if(btn_draw_clicked) {
                     searchLayout.setVisibility(View.VISIBLE);
-                    progressBar.setVisibility(View.GONE);
-                }else {
-                    progressBar.setVisibility(View.GONE);
-                }
-
             }
             @Override
             public void onFloors_Received(List<FloorModel> floors) {
                 if (floors == null || floors.isEmpty()) {
                     Log.e("onFloors_Received", "Received null or empty floor list");
-                    floor_spinner.setVisibility(View.GONE);
+//                    floor_spinner.setVisibility(View.GONE);
                     return;
                 }
 
                 Log.e("onFloors_Received: ", floors.get(0).shortName);
                 getActivity().runOnUiThread(() -> {
-                    floor_spinner.setVisibility(View.VISIBLE);
+
+//                    floor_spinner.setVisibility(View.VISIBLE);
 
                 List<String> shortNames = new ArrayList<>();
                 for (FloorModel floor : floors) {
                     shortNames.add(floor.getShortName());
                 }
+                    floor.setText(shortNames.get(0));
 
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        getContext(),
-                        R.layout.spinner_item,
-                        shortNames
-                );
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                floor_spinner.setAdapter(adapter);
+                floor.setVisibility(View.VISIBLE);
+                    adapter = new FloorAdapter(getActivity(), floors, new FloorAdapter.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(FloorModel floorModel) {
+                            // Get the details of the item here
+                            String floorName = floorModel.getShortName();
+                            becomap.selectFloor(floorModel.id);
+                            floor.setText(floorName);
+                            floorRecycler.setVisibility(View.GONE);
+                            // Do something with the floorName
+                        }
+                    });
+                    floorRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+                    floorRecycler.setAdapter(adapter);
+//                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
+//                            getContext(),
+//                            R.layout.spinner_item,
+//                            shortNames
+//                    );
+//                    adapter.setDropDownViewResource(R.layout.spinner_item);
+//                    floor_spinner.setAdapter(adapter);
 
-                floor_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        FloorModel selectedFloor = floors.get(position);
-                        Log.e("onFloors_Received: sa", selectedFloor.id);
-                        becomap.selectFloor(selectedFloor.id);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        // Optional
-                    }
-                });
+//                floor_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//                    @Override
+//                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                        FloorModel selectedFloor = floors.get(position);
+//                        Log.e("onFloors_Received: sa", selectedFloor.id);
+//                        becomap.selectFloor(selectedFloor.id);
+//                    }
+//
+//                    @Override
+//                    public void onNothingSelected(AdapterView<?> parent) {
+//                        // Optional
+//                    }
+//                });
                 });
             }
+
+            @Override
+            public void ongetroute(List<Route> routeList) {
+                Log.e("ongetroute: ", String.valueOf(routeList.get(0).getDistance()));
+                Log.e( "ongetroute: ","yes" );
+                getActivity().runOnUiThread(() -> {
+                becomap.showroute();
+            });
+            }
+
+
             @Override
             public void onSiteIdAvailable(String siteId) {
                 Log.e( "onSiteIdAvailable: ",siteId );
@@ -360,34 +391,40 @@ public class MapFragment extends Fragment {
         locationAdapter = new LocationAdapter(new ArrayList<>(), location -> {
             Log.e( "currentSelectedField: ", String.valueOf(currentSelectedField));
             if (location != null) {
+
+                becomap.selectLocationWithId(location.getId());
+
                 locationsText.setVisibility(View.GONE);
-                if (isDuplicateEntry(location.getName(), location.getType())) {
-                    Toast.makeText(requireContext(), "You selected duplicate entry", Toast.LENGTH_SHORT).show();
-                    locationsRecyclerView.setVisibility(View.GONE);
-                    locationsText.setVisibility(View.GONE);
-                    return;
-                }
+//                if (isDuplicateEntry(location.getName(), location.getType())) {
+//                    Toast.makeText(requireContext(), "You selected duplicate entry", Toast.LENGTH_SHORT).show();
+//                    locationsRecyclerView.setVisibility(View.GONE);
+//                    locationsText.setVisibility(View.GONE);
+//                    return;
+//                }
                 if (currentSelectedField == searchEditText) {
                     searchLayout.setVisibility(View.GONE);
                     isProgrammaticChange=true;
                     searchEditText.setText("");
+                    toid=location.getId();
                     isProgrammaticChange=false;
                     fromToLayout.setVisibility(View.VISIBLE);
-                    addStopText.setVisibility(View.VISIBLE);
                     fromLayout.setVisibility(View.VISIBLE );
                     toLayout.setVisibility(View.VISIBLE);
                     toEditText.setText(location.getName());
                 } else if (currentSelectedField == fromEditText) {
                     fromEditText.setText(location.getName());
                     locationsText.setVisibility(View.GONE);
+                    locationsRecyclerView.setVisibility(View.GONE);
                     addStopText.setVisibility(View.VISIBLE);
                     Log.e( "addStopText: ","shown" );
-
+                    startid=location.getId();
+                    Log.e( "angry bird 3 ",String.valueOf(startid) );
                 } else if (currentSelectedField == toEditText) {
                     toEditText.setText(location.getName());
                 } else {
+                    waypoints.add(location.getId());
                     // Handle stop field selection
-                    currentSelectedField.setText(location.getName() + " (" + location.getType() + ")");
+                    currentSelectedField.setText(location.getName() );
                 }
                 locationsRecyclerView.setVisibility(View.GONE);
             }
@@ -554,6 +591,7 @@ public class MapFragment extends Fragment {
                 Location location = new Location();
                 location.setName(store.getName());
                 location.setType(store.getType());
+                location.setId(store.id);
                 newlocation.add(location);
             }
             Log.e( "showsearchList: ", String.valueOf(newlocation.size()));
@@ -575,6 +613,7 @@ public class MapFragment extends Fragment {
                 Location location = new Location();
                 location.setName(store.getName());
                 location.setType(store.getType());
+                location.setId(store.id);
                 newlocation.add(location);
             }
             Log.e( "showsearchList: ", String.valueOf(newlocation.size()));

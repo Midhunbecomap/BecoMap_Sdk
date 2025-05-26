@@ -7,31 +7,31 @@
 
     <fragment
         android:id="@+id/navigation_store"
-        android:name="com.example.becomap_android_new.StoreFragment"
+        android:name="com.example.becomap_android_new.ui.fragments.StoreFragment"
         android:label="@string/title_store"
         tools:layout="@layout/fragment_store" />
 
     <fragment
         android:id="@+id/navigation_offers"
-        android:name="com.example.becomap_android_new.OffersFragment"
+        android:name="com.example.becomap_android_new.ui.fragments.OffersFragment"
         android:label="@string/title_offers"
         tools:layout="@layout/fragment_offers" />
 
     <fragment
         android:id="@+id/navigation_map"
-        android:name="com.example.becomap_android_new.MapFragment"
+        android:name="com.example.becomap_android_new.ui.fragments.MapFragment"
         android:label="@string/title_map"
         tools:layout="@layout/fragment_map" />
 
     <fragment
         android:id="@+id/navigation_events"
-        android:name="com.example.becomap_android_new.EventsFragment"
+        android:name="com.example.becomap_android_new.ui.fragments.EventsFragment"
         android:label="@string/title_events"
         tools:layout="@layout/fragment_events" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.example.becomap_android_new.ProfileFragment"
+        android:name="com.example.becomap_android_new.ui.fragments.ProfileFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" />
 </navigation>

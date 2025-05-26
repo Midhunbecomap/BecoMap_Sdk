@@ -1,5 +1,4 @@
-package com.example.becomap_android_new;
-
+package com.example.becomap_android_new.ui.fragments;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,13 +8,15 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-public class OffersFragment extends Fragment {
+import com.example.becomap_android_new.R;
+
+public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_offers, container, false);
-        TextView textView = root.findViewById(R.id.text_offers);
-        textView.setText("Offers will be displayed here");
+        View root = inflater.inflate(R.layout.fragment_profile, container, false);
+        TextView textView = root.findViewById(R.id.text_profile);
+        textView.setText("Profile will be displayed here");
         return root;
     }
 }

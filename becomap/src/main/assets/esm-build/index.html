@@ -82,7 +82,7 @@
       }
     };
 
-        globalThis.selectFloorWithId = (floor) => _mapView?.selectFloorWithId(floor);
+    globalThis.selectFloorWithId = (floor) => _mapView?.selectFloorWithId(floor);
     globalThis.selectLocationWithId = (location) => _mapView?.selectLocationWithId(location);
     globalThis.selectAmenities = (type) => _mapView?.selectAmenities(type);
     globalThis.focusTo = (location, zoom, bearing, pitch) =>
@@ -109,9 +109,12 @@
     };
 
     // -------- RouteController Methods --------
-    globalThis.showRoute = (segments, floor = null) =>
-      _mapView?.routeController?.showRoute(segments, floor);
+    globalThis.getRoute = (startID, goalID, waypoints = [], routeOptions) => {
+      const res = window.becomap.getRouteById(startID, goalID, waypoints, routeOptions);
+      notifyNative("getRoute", res.map(m => m.toJSON()));
+    };
+    globalThis.showRoute = () => _mapView?.routeController?.showSavedRoute();
     globalThis.walkThrough = (segment) => _mapView?.routeController?.walkThrough(segment);
     globalThis.stopWalking = () => _mapView?.routeController?.stopWalking();
-    globalThis.showStep = (step) => _mapView?.routeController?.showStep(step);
-    globalThis.clearAllRoutes = () => _mapView?.routeController?.clearAllRoutes();</script><script defer="defer" src="becomap.637230896adef97a92d6.js"></script><script defer="defer" src="becomap.27e1502ca60da6270427.js"></script><script defer="defer" src="becomap.204bb77e53f8934d60bc.js"></script><script defer="defer" src="becomap.965422ca02102fe028a0.js"></script><script defer="defer" src="becomap.ffe24385d0c73f325959.js"></script><script defer="defer" src="becomap.21d92f67b40dcacc2cd7.js"></script><script defer="defer" src="becomap.d91612626c19dc94e6e4.js"></script><script defer="defer" src="becomap.a18a52ddd6afe9e1cc67.js"></script><script defer="defer" src="becomap.4525056cf57a6fbddabd.js"></script><script defer="defer" src="becomap.078399a09fdc9dd0ac76.js"></script><script defer="defer" src="becomap.b1e0b01b8b0f548c63dd.js"></script><script defer="defer" src="becomap.fb2ecb886ef8ba3cdaa5.js"></script><script defer="defer" src="becomap.ee9fdf49e98f10ccafee.js"></script><script defer="defer" src="becomap.77351ab92d9644fc8920.js"></script></body></html>
+    globalThis.showStep = (step) => _mapView?.routeController?.showStepByOrderIndex(step);
+    globalThis.clearAllRoutes = () => _mapView?.routeController?.clearAllRoutes();</script><script defer="defer" src="becomap.31b2a1d96b96e51b7bc9.js"></script><script defer="defer" src="becomap.403cdfa00b8ba14711f6.js"></script><script defer="defer" src="becomap.97ec5cc18e8445235bc5.js"></script><script defer="defer" src="becomap.6cf0b7747b5d56dfc52e.js"></script><script defer="defer" src="becomap.0d1df624653b8917037a.js"></script><script defer="defer" src="becomap.78de18efd2315e404e32.js"></script><script defer="defer" src="becomap.25093344e3e04b8ce58c.js"></script><script defer="defer" src="becomap.e7d7fac535e63cb192d4.js"></script><script defer="defer" src="becomap.dd2738adfea3368b0784.js"></script><script defer="defer" src="becomap.d8532432b533e49e375b.js"></script><script defer="defer" src="becomap.b811cf1dfc1383a294e1.js"></script><script defer="defer" src="becomap.d200b2726d744fbad5b3.js"></script><script defer="defer" src="becomap.0ba05437eaabcfe6ea2d.js"></script><script defer="defer" src="becomap.4e9af42f07471113ea85.js"></script></body></html>

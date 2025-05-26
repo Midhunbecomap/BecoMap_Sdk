@@ -19,19 +19,19 @@
 
     <fragment
         android:id="@+id/navigation_map"
-        android:name="com.example.becomap_android_new.MapFragment"
+        android:name="com.example.becomap_android_new.ui.fragments.MapFragment"
         android:label="Map"
         tools:layout="@layout/fragment_map" />
 
     <fragment
         android:id="@+id/navigation_events"
-        android:name="com.example.becomap_android_new.EventsFragment"
+        android:name="com.example.becomap_android_new.ui.fragments.EventsFragment"
         android:label="Events"
         tools:layout="@layout/fragment_events" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.example.becomap_android_new.ProfileFragment"
+        android:name="com.example.becomap_android_new.ui.fragments.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
 

@@ -1,22 +1,11 @@
-package com.example.becomap_android_new;
+package com.example.becomap_android_new.ui;
 
 import android.os.Bundle;
-import android.widget.FrameLayout;
-import android.util.Log;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import com.becomap.sdk.UI.Becomap;
-import org.json.JSONObject;
-import java.util.List;
 
-import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.becomap_android_new.R;

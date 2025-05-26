@@ -4,6 +4,12 @@ package com.becomap.sdk.Config;
 import android.util.Log;
 import android.webkit.WebView;
 
+import androidx.annotation.Nullable;
+
+import org.json.JSONObject;
+
+import java.util.List;
+
 public class BecoWebInterface {
     private static final String TAG = "BecomapJSConfig";
     private final String clientId;
@@ -22,6 +28,7 @@ public class BecoWebInterface {
 
     /**
      * Set custom initialization options in JSON format
+     *
      * @param options JSON string with additional init parameters
      */
     public BecoWebInterface setInitOptions(String options) {
@@ -60,7 +67,7 @@ public class BecoWebInterface {
         webView.evaluateJavascript("javascript:getLocations()", null);
     }
 
-    public void execute_search_all_location(WebView webView,String value) {
+    public void execute_search_all_location(WebView webView, String value) {
         if (webView == null) {
             Log.e(TAG, "WebView is null, cannot execute searchlocation");
             return;
@@ -106,6 +113,7 @@ public class BecoWebInterface {
 
         webView.evaluateJavascript("javascript:getDefaultFloor()", null);
     }
+
     public void GetLanguages(WebView webView) {
         if (webView == null) {
             Log.e(TAG, "WebView is null, cannot inject getLanguages");
@@ -114,6 +122,7 @@ public class BecoWebInterface {
 
         webView.evaluateJavascript("javascript:getLanguages()", null);
     }
+
     public void GetCurrentFloor(WebView webView) {
         if (webView == null) {
             Log.e(TAG, "WebView is null, cannot inject getCurrentFloor");
@@ -149,6 +158,7 @@ public class BecoWebInterface {
 
         webView.evaluateJavascript("javascript:getAmenities()", null);
     }
+
     public void GetQuestions(WebView webView) {
         if (webView == null) {
             Log.e(TAG, "WebView is null, cannot inject getQuestions");
@@ -168,7 +178,7 @@ public class BecoWebInterface {
         webView.evaluateJavascript("javascript:globalThis.getSessionId()", null);
     }
 
-    public void GetHappenings(WebView webView,String value) {
+    public void GetHappenings(WebView webView, String value) {
         if (webView == null) {
             Log.e(TAG, "WebView is null, cannot execute searchlocation");
             return;
@@ -186,7 +196,65 @@ public class BecoWebInterface {
 
         // Make sure to escape any double quotes or backslashes in the JSON string
         String jsCall = String.format("javascript:selectFloorWithId('%s')", rawFloorJson);
-        Log.e(TAG, "jsCall: "+jsCall );
+        Log.e(TAG, "jsCall: " + jsCall);
         webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+
+    public void selectLocationWithId(WebView webView, String id) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute selectFloor");
+            return;
+        }
+
+        // Make sure to escape any double quotes or backslashes in the JSON string
+        String jsCall = String.format("javascript:selectLocationWithId('%s')", id);
+        Log.e(TAG, "jsCall: " + jsCall);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+
+    public void getRouteById(WebView webView, String startID, String goalID,List<String> waypoints) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute getRouteById");
+            return;
+        }
+
+        // Convert waypoints list to a JSON array string
+        StringBuilder waypointsJson = new StringBuilder("[");
+        if (waypoints != null && !waypoints.isEmpty()) {
+            for (int i = 0; i < waypoints.size(); i++) {
+                waypointsJson.append("\"").append(escapeJsString(waypoints.get(i))).append("\"");
+                if (i < waypoints.size() - 1) {
+                    waypointsJson.append(",");
+                }
+            }
+        }
+        waypointsJson.append("]");
+
+        // routeOptions could be null
+        // Build JS function call
+        String jsCall = String.format("javascript:globalThis.getRoute('%s', '%s', %s, %s)",
+                escapeJsString(startID),
+                escapeJsString(goalID),
+                waypointsJson.toString(),
+                null);
+
+        Log.d("JSCall", "Calling JS: " + jsCall);
+
+        // Execute in WebView
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+
+    public void showRoute(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject showRoute");
+            return;
+        }
+
+        // Triggers JavaScript function in the WebView
+        webView.evaluateJavascript("javascript:showRoute()", null);
+    }
+    private String escapeJsString(String input) {
+        if (input == null) return "";
+        return input.replace("\\", "\\\\").replace("'", "\\'");
     }
 }

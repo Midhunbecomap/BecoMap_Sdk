@@ -10,7 +10,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebSettings;
 import android.webkit.WebChromeClient;
-import android.widget.Toast;
 import android.webkit.JavascriptInterface;
 import android.webkit.ConsoleMessage;
 
@@ -26,14 +25,16 @@ import com.becomap.sdk.model.Color;
 import com.becomap.sdk.model.Language.LanguageModel;
 import com.becomap.sdk.model.LocationModel;
 import com.becomap.sdk.model.Questions.BCQuestion;
+import com.becomap.sdk.model.Route;
 import com.becomap.sdk.model.SearchResult;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,10 +86,22 @@ public class Becomap {
     public void selectFloor(String floorId) {
         jsConfig.selectFloor(webView, floorId);
     }
+    public void selectLocationWithId(String locationid) {
+        jsConfig.selectLocationWithId(webView, locationid);
+    }
 
     public void getFloors() {
         Log.d(TAG, "Getting floors");
         jsConfig.GetBuildinsFunction(webView);
+    }
+
+    public void getroute(String Startid,String toid,List<String> waypoints) {
+        Log.d(TAG, "Getting floors");
+        jsConfig.getRouteById(webView,Startid, toid,waypoints);
+    }
+    public void showroute() {
+        Log.d(TAG, "show route");
+        jsConfig.showRoute(webView);
     }
 
     public void setCallback(BecomapCallback callback) {
@@ -185,7 +198,7 @@ public class Becomap {
             try {
                 JSONObject message = new JSONObject(messageJson);
                 String messageType = message.getString("type");
-
+                Log.e( "handleJsMessage: ", messageType);
                 switch (messageType) {
                     case "onRenderComplete":
                         handleRenderComplete();
@@ -232,6 +245,10 @@ public class Becomap {
                     case "getSessionId":
                         handleSessionId(message.getString("payload"));
                         break;
+                    case "getRoute":
+                        handleGetRoute(message.getJSONArray("payload").toString());
+//                        jsConfig.showRoute(webView);
+                        break;
                     default:
                         Log.w(TAG, "Unhandled message type: " + messageType);
                         break;
@@ -260,6 +277,7 @@ public class Becomap {
 
         private void handleSearchResults(JSONObject payload) throws JSONException {
             List<SearchResult> searchResults = parseSearchResults(payload.getJSONArray("results"));
+            Log.e( "handleSearchResults: ",searchResults.get(0).id );
             if (callback != null) {
                 callback.onSearchResultsReceived(searchResults);
             }
@@ -346,6 +364,15 @@ public class Becomap {
             Log.d(TAG, "Session ID: " + sessionId);
             if (callback != null) {
                 callback.onSessionIdReceived(sessionId);
+            }
+        }
+        private void handleGetRoute(String getroutejson) {
+            Log.e("handleGetRoute: ", getroutejson);
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<Route>>() {}.getType();
+            List<Route> routeList = gson.fromJson(getroutejson, listType);
+            if (callback != null) {
+                callback.ongetroute(routeList);
             }
         }
 
@@ -577,5 +604,7 @@ public class Becomap {
         void onSurveyQuestionsReceived(List<BCQuestion> questions);
         void onSessionIdReceived(String sessionId);
         void onFloors_Received(List<FloorModel> floors);
+
+        void ongetroute(List<Route> routeList);
     }
 }
