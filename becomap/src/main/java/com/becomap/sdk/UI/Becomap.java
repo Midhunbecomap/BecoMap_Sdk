@@ -18,6 +18,8 @@ import androidx.lifecycle.ViewModelStoreOwner;
 
 import com.becomap.sdk.Config.BecoWebInterface;
 import com.becomap.sdk.ViewModel.BecomapViewModel;
+import com.becomap.sdk.model.BCHappeningType;
+import com.becomap.sdk.model.BCHappenings;
 import com.becomap.sdk.model.BuildingsModels.BuildingModel;
 import com.becomap.sdk.model.BuildingsModels.FloorModel;
 import com.becomap.sdk.model.Category;
@@ -36,23 +38,36 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-
+import java.util.Map;
+/**
+ * Main class for Becomap SDK integration.
+ * Handles WebView initialization, JavaScript communication, and data parsing.
+ */
 public class Becomap {
     private static final String TAG = "Becomap";
 
     // UI Components
-    private final Context context;
-    private WebView webView;
-    private ViewGroup rootContainer;
+    private final Context context;// Application context
+    private WebView webView;// WebView for displaying the map
+    private ViewGroup rootContainer;// Container for the WebView
 
     // Data Components
-    private BecomapViewModel viewModel;
-    private BecoWebInterface jsConfig;
+    private BecomapViewModel viewModel; // ViewModel for data persistence
+    private BecoWebInterface jsConfig; // JavaScript interface configuration
+
 
     // Callback
     private BecomapCallback callback;
 
+    /**
+     * Constructor for Becomap SDK
+     * @param context The application context (must implement ViewModelStoreOwner)
+     * @throws IllegalArgumentException if context is null
+     * @throws IllegalStateException if context doesn't implement ViewModelStoreOwner
+     */
     // Constructor
     public Becomap(Context context) {
         if (context == null) {
@@ -61,7 +76,9 @@ public class Becomap {
         this.context = context;
         initializeViewModel();
     }
-
+    /**
+     * Initializes the ViewModel for data persistence
+     */
     private void initializeViewModel() {
         if (context instanceof ViewModelStoreOwner) {
             viewModel = new ViewModelProvider((ViewModelStoreOwner) context).get(BecomapViewModel.class);
@@ -70,7 +87,16 @@ public class Becomap {
         }
     }
 
-    // Public API Methods
+
+    // ================== PUBLIC API METHODS ================== //
+
+    /**
+     * Initializes the map in the specified container
+     * @param container The ViewGroup to host the WebView
+     * @param clientId API client ID
+     * @param clientSecret API client secret
+     * @param siteIdentifier Site identifier for the map
+     */
     public void initializeMap(ViewGroup container, String clientId, String clientSecret, String siteIdentifier) {
         this.rootContainer = container;
         setupCredentials(clientId, clientSecret, siteIdentifier);
@@ -78,37 +104,129 @@ public class Becomap {
         loadLocalHtml();
     }
 
+    /**
+     * Searches for locations matching the given value
+     * @param value Search query string
+     */
     public void searchLocation(String value) {
         Log.d(TAG, "Searching for location: " + value);
         jsConfig.execute_search_all_location(webView, value);
     }
-
+    /**
+     * Selects a specific floor on the map
+     * @param floorId ID of the floor to select
+     */
     public void selectFloor(String floorId) {
         jsConfig.selectFloor(webView, floorId);
     }
+    /**
+     * Selects a location by its ID
+     * @param locationid ID of the location to select
+     */
     public void selectLocationWithId(String locationid) {
         jsConfig.selectLocationWithId(webView, locationid);
     }
-
+    /**
+     * Retrieves all floors in the current building
+     */
     public void getFloors() {
         Log.d(TAG, "Getting floors");
         jsConfig.GetBuildinsFunction(webView);
     }
-
+    /**
+     * Calculates a route between locations
+     * @param Startid Starting location ID
+     * @param toid Destination location ID
+     * @param waypoints List of waypoint location IDs
+     */
     public void getroute(String Startid,String toid,List<String> waypoints) {
         Log.d(TAG, "Getting floors");
         jsConfig.getRouteById(webView,Startid, toid,waypoints);
     }
+    /**
+     * Displays the calculated route on the map
+     */
     public void showroute() {
         Log.d(TAG, "show route");
         jsConfig.showRoute(webView);
     }
 
+    /**
+     * Clears all routes from the map
+     */
+    public void clearallroutes() {
+        Log.d(TAG, "show route");
+        jsConfig.clearallroutes(webView);
+    }
+    /**
+     * Highlights a specific step in the current route
+     * @param stepIndex Index of the step to show
+     */
+    public void showStep(int stepIndex) {
+        Log.d(TAG, "show route");
+        jsConfig.showStepByOrderIndex(webView,stepIndex);
+    }
+    /**
+     * Gets all locations in the current map
+     */
+    public void getlocation() {
+        Log.d(TAG, "executegetalllocation");
+        jsConfig.executegetalllocation(webView);
+    }
+    public void injectGetSiteIdFunction() {
+        Log.d(TAG, "injectGetSiteIdFunction");
+        jsConfig.injectGetSiteIdFunction(webView);
+    }
+    public void injectGetSiteNameFunction() {
+        Log.d(TAG, "injectGetSiteNameFunction");
+        jsConfig.injectGetSiteNameFunction(webView);
+    }
+    public void GetDefaultFloor() {
+        Log.d(TAG, "GetDefaultFloor");
+        jsConfig.GetDefaultFloor(webView);
+    }
+    public void GetLanguages() {
+        Log.d(TAG, "GetLanguages");
+        jsConfig.GetLanguages(webView);
+    }
+    public void GetCurrentFloor() {
+        Log.d(TAG, "GetCurrentFloor");
+        jsConfig.GetCurrentFloor(webView);
+    }
+    public void GetCategories() {
+        Log.d(TAG, "GetCategories");
+        jsConfig.GetCategories(webView);
+    }
+    public void GetAllAmenities() {
+        Log.d(TAG, "GetAllAmenities");
+        jsConfig.GetAllAmenities(webView);
+    }
+    public void GetSessionId() {
+        Log.d(TAG, "GetSessionId");
+        jsConfig.GetSessionId(webView);
+    }
+    public void GetQuestions() {
+        Log.d(TAG, "GetQuestions");
+        jsConfig.GetQuestions(webView);
+    }
+    public void GetAmenities() {
+        Log.d(TAG, "GetAmenities");
+        jsConfig.GetAmenities(webView);
+    }
+    public void GetHappenings(String type) {
+        Log.d(TAG, "GetHappenings");
+        jsConfig.GetHappenings(webView,type);
+    }
     public void setCallback(BecomapCallback callback) {
         this.callback = callback;
     }
 
-    // WebView Setup
+    // ================== WEBVIEW SETUP ================== //
+
+    /**
+     * Configures the WebView with appropriate settings
+     * @param container The parent view to add the WebView to
+     */
     private void setupWebView(ViewGroup container) {
         webView = new WebView(context);
         container.addView(webView, new ViewGroup.LayoutParams(
@@ -119,7 +237,9 @@ public class Becomap {
         setupWebViewClients();
         addJavascriptInterface();
     }
-
+    /**
+     * Configures WebView settings for optimal map performance
+     */
     private void configureWebSettings() {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -135,28 +255,40 @@ public class Becomap {
         webSettings.setSavePassword(false);
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
     }
-
+    /**
+     * Sets up WebView clients for handling page events
+     */
     private void setupWebViewClients() {
         webView.setWebViewClient(new BecomapWebViewClient());
         webView.setWebChromeClient(new BecomapWebChromeClient());
     }
-
+    /**
+     * Adds the JavaScript interface for communication
+     */
     private void addJavascriptInterface() {
         webView.addJavascriptInterface(new WebAppInterface(context), "jsHandler");
     }
-
+    /**
+     * Loads the local HTML file containing the map
+     */
     private void loadLocalHtml() {
         if (webView != null) {
             webView.loadUrl("file:///android_asset/esm-build/index.html");
         }
     }
-
+    /**
+     * Sets up API credentials
+     */
     private void setupCredentials(String clientId, String clientSecret, String siteIdentifier) {
         jsConfig = new BecoWebInterface(clientId, clientSecret, siteIdentifier);
         viewModel.setCredentials(clientId, clientSecret, siteIdentifier);
     }
 
-    // WebView Client Classes
+// ================== WEBVIEW CLIENT CLASSES ================== //
+
+    /**
+     * Custom WebViewClient for handling page loading events
+     */
     private class BecomapWebViewClient extends WebViewClient {
         @Override
         public void onPageFinished(WebView view, String url) {
@@ -171,7 +303,9 @@ public class Becomap {
             Log.e(TAG, "WebView error: " + description);
         }
     }
-
+    /**
+     * Custom WebChromeClient for handling console messages
+     */
     private class BecomapWebChromeClient extends WebChromeClient {
         @Override
         public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
@@ -180,20 +314,30 @@ public class Becomap {
         }
     }
 
-    // JavaScript Interface
+    // ================== JAVASCRIPT INTERFACE ================== //
+
+    /**
+     * Interface for JavaScript to communicate with native Android code
+     */
     private class WebAppInterface {
         private final Context mContext;
 
         WebAppInterface(Context context) {
             this.mContext = context;
         }
-
+        /**
+         * Receives messages from JavaScript
+         * @param messageJson JSON string containing message data
+         */
         @JavascriptInterface
         public void postMessage(String messageJson) {
             Log.d(TAG, "Received from JS: " + messageJson);
             handleJsMessage(messageJson);
         }
-
+        /**
+         * Handles incoming JavaScript messages
+         * @param messageJson JSON string containing message data
+         */
         private void handleJsMessage(String messageJson) {
             try {
                 JSONObject message = new JSONObject(messageJson);
@@ -249,6 +393,9 @@ public class Becomap {
                         handleGetRoute(message.getJSONArray("payload").toString());
 //                        jsConfig.showRoute(webView);
                         break;
+                    case "getHappenings":
+                        handleHappenings(message.getJSONArray("payload"));
+                        break;
                     default:
                         Log.w(TAG, "Unhandled message type: " + messageType);
                         break;
@@ -258,7 +405,11 @@ public class Becomap {
             }
         }
 
-        // Message Handlers
+        // ================== MESSAGE HANDLERS ================== //
+
+        /**
+         * Handles map render complete event
+         */
         private void handleRenderComplete() {
             runOnUiThread(() -> {
                 Log.d(TAG, "Map Render Complete");
@@ -267,7 +418,11 @@ public class Becomap {
                 }
             });
         }
-
+        /**
+         * Handles location data from the map
+         * @param locationsArray JSON array of location data
+         * @throws JSONException if parsing fails
+         */
         private void handleLocations(JSONArray locationsArray) throws JSONException {
             List<LocationModel> locations = parseLocations(locationsArray);
             if (callback != null) {
@@ -277,7 +432,7 @@ public class Becomap {
 
         private void handleSearchResults(JSONObject payload) throws JSONException {
             List<SearchResult> searchResults = parseSearchResults(payload.getJSONArray("results"));
-            Log.e( "handleSearchResults: ",searchResults.get(0).id );
+            Log.e( "handleSearchResults: ", String.valueOf(searchResults.get(0)));
             if (callback != null) {
                 callback.onSearchResultsReceived(searchResults);
             }
@@ -375,8 +530,67 @@ public class Becomap {
                 callback.ongetroute(routeList);
             }
         }
+        private void handleHappenings(JSONArray payload) {
+            List<BCHappenings> happeningsList = new ArrayList<>();
+            for (int i = 0; i < payload.length(); i++) {
+                try {
+                    JSONObject obj = payload.getJSONObject(i);
+                    BCHappenings happening = parseHappeningFromJson(obj);
+                    happeningsList.add(happening);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error parsing happening at index " + i, e);
+                }
+            }
+
+            // Do something with the list of BCHappenings
+            Log.d(TAG, "Parsed " + happeningsList.size() + " happenings");
+        }
 
         // Parsing Methods
+        private BCHappenings parseHappeningFromJson(JSONObject obj) throws JSONException {
+            BCHappenings happening = new BCHappenings();
+
+            happening.setId(obj.optString("id"));
+            happening.setName(obj.optString("name"));
+            happening.setDescription(obj.optString("description"));
+            happening.setStartDate(obj.optString("startDate"));
+            happening.setEndDate(obj.optString("endDate"));
+            happening.setShowDate(obj.optString("showDate"));
+            happening.setExternalId(obj.optString("externalId"));
+            happening.setSiteId(obj.optString("siteId"));
+            happening.setLocationId(obj.optString("locationId"));
+
+            JSONArray imagesArray = obj.optJSONArray("images");
+            List<String> images = new ArrayList<>();
+            if (imagesArray != null) {
+                for (int j = 0; j < imagesArray.length(); j++) {
+                    images.add(imagesArray.optString(j));
+                }
+            }
+            happening.setImages(images);
+
+            // Parse enum type safely
+            String typeStr = obj.optString("type");
+            BCHappeningType type = BCHappeningType.fromValue(typeStr);
+            happening.setType(type);
+
+            happening.setPriority(obj.optInt("priority"));
+
+            // Parse customFields
+            JSONObject customFieldsJson = obj.optJSONObject("customFields");
+            if (customFieldsJson != null) {
+                Map<String, Object> customFields = new HashMap<>();
+                Iterator<String> keys = customFieldsJson.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    customFields.put(key, customFieldsJson.opt(key));
+                }
+                happening.setCustomFields(customFields);
+            }
+
+            return happening;
+        }
+
         private List<LocationModel> parseLocations(JSONArray locationsArray) throws JSONException {
             List<LocationModel> locations = new ArrayList<>();
             for (int i = 0; i < locationsArray.length(); i++) {
@@ -520,7 +734,10 @@ public class Becomap {
             }
             return options;
         }
-
+        /**
+         * Runs code on the UI thread
+         * @param action Runnable to execute on UI thread
+         */
         private void runOnUiThread(Runnable action) {
             if (mContext instanceof Activity) {
                 ((Activity) mContext).runOnUiThread(action);
@@ -528,7 +745,7 @@ public class Becomap {
         }
     }
 
-    // Lifecycle Methods
+    // ================== LIFECYCLE METHODS ================== //
     public void onStart() {
         if (webView != null) webView.onResume();
     }
@@ -550,7 +767,9 @@ public class Becomap {
             cleanupWebView();
         }
     }
-
+    /**
+     * Cleans up WebView resources
+     */
     private void cleanupWebView() {
         webView.stopLoading();
         webView.clearHistory();
@@ -587,7 +806,11 @@ public class Becomap {
         }
     }
 
-    // Callback Interface
+    // ================== CALLBACK INTERFACE ================== //
+
+    /**
+     * Interface for communicating events back to the host application
+     */
     public interface BecomapCallback {
         void onMapRenderComplete();
         void onLocationsReceived(List<LocationModel> locations);

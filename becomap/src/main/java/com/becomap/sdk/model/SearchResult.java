@@ -20,6 +20,16 @@ public class SearchResult {
     public Floor floor;
     public List<Category> categories;
     public String logo;
+    public String banner;
+
+    public String getBanner() {
+        return banner;
+    }
+
+    public void setBanner(String banner) {
+        this.banner = banner;
+    }
+
     public boolean topLocation;
     public boolean showLogo;
     public int sortOrder;

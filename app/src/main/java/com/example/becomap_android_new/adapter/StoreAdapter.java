@@ -7,6 +7,9 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.becomap.sdk.model.BuildingsModels.FloorModel;
+import com.becomap.sdk.model.LocationModel;
+import com.bumptech.glide.Glide;
 import com.example.becomap_android_new.R;
 import com.example.becomap_android_new.model.Store;
 
@@ -14,11 +17,13 @@ import java.util.List;
 import java.util.ArrayList;
 public class StoreAdapter extends BaseAdapter {
     private Context context;
-    private List<Store> stores;
+    private List<LocationModel> stores;
+    private OnStoreClickListener listener;
 
-    public StoreAdapter(Context context, List<Store> stores) {
+    public StoreAdapter(Context context, List<LocationModel> stores, OnStoreClickListener listener) {
         this.context = context;
         this.stores = stores != null ? stores : new ArrayList<>();
+        this.listener = listener;
     }
 
     @Override
@@ -46,24 +51,27 @@ public class StoreAdapter extends BaseAdapter {
             holder.storeImage = convertView.findViewById(R.id.storeImage);
             holder.storeName = convertView.findViewById(R.id.storeName);
             holder.storeType = convertView.findViewById(R.id.storeType);
-            holder.storeRating = convertView.findViewById(R.id.storeRating);
-            holder.storeReviews = convertView.findViewById(R.id.storeReviews);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        Store store = stores.get(position);
+        LocationModel store = stores.get(position);
         if (store != null) {
             holder.storeName.setText(store.getName() != null ? store.getName() : "");
             holder.storeType.setText(store.getType() != null ? store.getType() : "");
-            holder.storeRating.setText(String.format("%.1f", store.getRating()));
-            holder.storeReviews.setText(String.format("(%d)", store.getTotalReviews()));
-
             // Use a default placeholder image
-            holder.storeImage.setImageResource(R.drawable.ic_launcher_background);
+            Glide.with(context)
+                    .load(store.getLogo()) // Assuming getLogo() returns the image URL
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_background)
+                    .into(holder.storeImage);
         }
-
+        convertView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onStoreClick(store);
+            }
+        });
         return convertView;
     }
 
@@ -73,5 +81,8 @@ public class StoreAdapter extends BaseAdapter {
         TextView storeType;
         TextView storeRating;
         TextView storeReviews;
+    }
+    public interface OnStoreClickListener {
+        void onStoreClick(LocationModel location);
     }
 }

@@ -1,17 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.textfield.TextInputLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:hint="Stop"
-    app:endIconMode="custom"
-    app:endIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:padding="2dp"
+    android:layout_height="wrap_content">
 
-    <com.google.android.material.textfield.TextInputEditText
+    <ImageView
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="center"
+        android:src="@drawable/outline_circle_24"/>
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text"
-        android:maxLines="1" />
+        app:cardBackgroundColor="#F2F2F2"
+        android:layout_margin="5dp"
+        android:elevation="0dp"
+        app:cardElevation="0dp"
+        app:cardCornerRadius="10dp">
 
-</com.google.android.material.textfield.TextInputLayout>
+    <LinearLayout
+        android:id="@+id/stopFieldInnerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="#F2F2F2"
+        android:orientation="horizontal">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/stopEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:hint="Stop"
+            android:textColorHint="#959494"
+            android:textColor="@color/black"
+            android:layout_weight="0.6"
+            android:background="@android:color/transparent"
+            android:singleLine="true"
+            android:textSize="15dp"
+            android:padding="10dp"/>
+
+        <ImageView
+            android:id="@+id/stopEditText_close"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:src="@drawable/x_close"/>
+    </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</LinearLayout>

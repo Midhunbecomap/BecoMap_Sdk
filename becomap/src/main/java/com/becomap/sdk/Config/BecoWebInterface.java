@@ -253,6 +253,28 @@ public class BecoWebInterface {
         // Triggers JavaScript function in the WebView
         webView.evaluateJavascript("javascript:showRoute()", null);
     }
+
+    public void showStepByOrderIndex(WebView webView, int stepIndex) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot call showStepByOrderIndex");
+            return;
+        }
+
+        String jsCall = String.format("javascript:globalThis.showStep(%d)", stepIndex);
+        Log.d(TAG, "Calling JS showStepByOrderIndex: " + jsCall);
+
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+
+    public void clearallroutes(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject showRoute");
+            return;
+        }
+
+        // Triggers JavaScript function in the WebView
+        webView.evaluateJavascript("javascript:clearAllRoutes()", null);
+    }
     private String escapeJsString(String input) {
         if (input == null) return "";
         return input.replace("\\", "\\\\").replace("'", "\\'");

@@ -1,9 +1,10 @@
 package com.becomap.sdk.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LocationModel {
+public class LocationModel implements Serializable {
     private String id;
     private String name;
     private String description;
