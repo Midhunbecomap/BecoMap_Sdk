@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.becomap.sdk.UI.Becomap;
+import com.becomap.sdk.model.BCHappenings;
 import com.becomap.sdk.model.BuildingsModels.BuildingModel;
 import com.becomap.sdk.model.BuildingsModels.FloorModel;
 import com.becomap.sdk.model.Category;
@@ -114,6 +115,7 @@ public class MapFragment extends Fragment {
     TextView distance_text,direction_text,estimated_time,estimated_time_start,estimated_distance_start;
     ImageView close_fromto_layout;
     LocationModel storelocation;
+    String Event_location="";
     List<LocationModel> getalllocation;
 
     @Override
@@ -121,12 +123,17 @@ public class MapFragment extends Fragment {
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_map, container, false);
         if (getArguments() != null) {
-            storelocation = (LocationModel) getArguments().getSerializable("location");
-            getArguments().clear();
-            // Now you can use this location
-        }else {
-            storelocation=null;
+            Bundle args = getArguments();
+
+            if (args.containsKey("location")) {
+                storelocation = (LocationModel) args.getSerializable("location");
+            } else if (args.containsKey("locationName")) {
+                Event_location = args.getString("locationName");
+            }
+
+            getArguments().clear(); // Clear after using all keys
         }
+
         initializeViews(root);
         return root;
     }
@@ -228,6 +235,7 @@ public class MapFragment extends Fragment {
                 floor.setVisibility(View.GONE);
                 end_button.setVisibility(View.VISIBLE);
                 direction_layout.setVisibility(View.VISIBLE);
+                becomap.showStep(0);
             }
         });
         end_button.setOnClickListener(new View.OnClickListener() {
@@ -405,9 +413,9 @@ public class MapFragment extends Fragment {
         becomap = new Becomap(requireContext());
 
         // Initialize map with WebView
-        becomap.initializeMap(mapContainer, "c079dfa3a77dad13351cfacd95841c2c2780fe08",
-                "f62a59675b2a47ddb75f1f994d88e653",
-                "67dcf5dd2f21c64e3225254f");
+        becomap.initializeMap(mapContainer, "7a2f9d3c85b14eef6670c20458e607d912314b76",
+                "3f9c27d4b68ea52a7c1d5e034f8b6a1",
+                "67b481f2b253dc2bccb426f2");
 
         setupBecomapCallback();
     }
@@ -437,12 +445,14 @@ public class MapFragment extends Fragment {
             public void onMapRenderComplete() {
                 becomap.getlocation();
                 if (storelocation != null ) {
-                    floor.setVisibility(View.GONE);
-                    SearchResult result=convertLocationToSearchResult(storelocation);
-                    becomap.selectLocationWithId(result.getId());
-                    setupBottomSheet();
-                    showLocationBottomSheet(result);
-                    progressBar.setVisibility(View.GONE);
+                    getActivity().runOnUiThread(() -> {
+                        floor.setVisibility(View.GONE);
+                        SearchResult result = convertLocationToSearchResult(storelocation);
+                        becomap.selectLocationWithId(result.getId());
+                        setupBottomSheet();
+                        showLocationBottomSheet(result);
+                        progressBar.setVisibility(View.GONE);
+                    });
                 } else {
                     becomap.getFloors();
                     progressBar.setVisibility(View.GONE);
@@ -506,6 +516,11 @@ public class MapFragment extends Fragment {
                     Start_layout.setVisibility(View.VISIBLE);
 
             });
+            }
+
+            @Override
+            public void onGetHappening(List<BCHappenings> happenings) {
+
             }
 
 
@@ -707,8 +722,6 @@ public class MapFragment extends Fragment {
                 .error(R.drawable.ic_launcher_background)
                 .into(banner);
         }
-        Log.e( "showLocationBottomSheet: ", String.valueOf(location.categories.size()));
-        Log.e( "showLocationBottomSheet: ", location.categories.get(0).getName());
         if (location.getCategories().equals(null) || location.getCategories().isEmpty())
         {
             categoriesTitle.setVisibility(View.GONE);
@@ -739,10 +752,15 @@ public class MapFragment extends Fragment {
             public void onClick(View view) {
                 bottomSheet.setVisibility(View.GONE);
                 toid=location.getId();
+                searchRecyclerView.setVisibility(View.GONE);
+                locationsText.setVisibility(View.GONE);
+                locationtext_search.setVisibility(View.GONE);
                 fromToLayout.setVisibility(View.VISIBLE);
                 fromLayout.setVisibility(View.VISIBLE );
                 toLayout.setVisibility(View.VISIBLE);
+                isProgrammaticChange=true;
                 toEditText.setText(location.getName());
+                isProgrammaticChange=false;
 
             }
         });

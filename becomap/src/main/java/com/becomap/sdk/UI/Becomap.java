@@ -29,6 +29,8 @@ import com.becomap.sdk.model.LocationModel;
 import com.becomap.sdk.model.Questions.BCQuestion;
 import com.becomap.sdk.model.Route;
 import com.becomap.sdk.model.SearchResult;
+import com.becomap.sdk.model.SpeakerField;
+import com.becomap.sdk.model.ViewPort;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -217,6 +219,46 @@ public class Becomap {
         Log.d(TAG, "GetHappenings");
         jsConfig.GetHappenings(webView,type);
     }
+    public void selectAmenities(String type) {
+        Log.d(TAG, "selectAmenities");
+        jsConfig.selectAmenities(webView,type);
+    }
+    public void focusTo(LocationModel locationModel,int zoom,int bearing,int pitch) {
+        Log.d(TAG, "focusTo");
+        jsConfig.focusTo(webView,locationModel,zoom,bearing,pitch);
+    }
+    public void clearSelection() {
+        Log.d(TAG, "clearSelection");
+        jsConfig.clearSelection(webView);
+    }
+    public void updateZoom(int zoom) {
+        Log.d(TAG, "updateZoom");
+        jsConfig.updateZoom(webView,zoom);
+    }
+    public void updatePitch(int pitch) {
+        Log.d(TAG, "updatePitch");
+        jsConfig.updatePitch(webView,pitch);
+    }
+    public void updateBearing(int bearing) {
+        Log.d(TAG, "updateBearing");
+        jsConfig.updateBearing(webView,bearing);
+    }
+    public void enableMultiSelection(boolean val) {
+        Log.d(TAG, "enableMultiSelection");
+        jsConfig.enableMultiSelection(webView,val);
+    }
+    public void setBounds(double[] sw, double[] ne) {
+        Log.d(TAG, "setBounds");
+        jsConfig.setBounds(webView, sw, ne);
+    }
+    public void setViewport(ViewPort viewPort) {
+        Log.d(TAG, "setViewport");
+        jsConfig.setViewport(webView,viewPort);
+    }
+    public void resetDefaultViewport(ViewPort viewPort) {
+        Log.d(TAG, "resetDefaultViewport");
+        jsConfig.resetDefaultViewport(webView,viewPort);
+    }
     public void setCallback(BecomapCallback callback) {
         this.callback = callback;
     }
@@ -346,6 +388,7 @@ public class Becomap {
                 switch (messageType) {
                     case "onRenderComplete":
                         handleRenderComplete();
+//                        jsConfig.selectAmenities(webView,"ELEVATOR");
                         break;
                     case "getLocations":
                         handleLocations(message.getJSONArray("payload"));
@@ -424,6 +467,7 @@ public class Becomap {
          * @throws JSONException if parsing fails
          */
         private void handleLocations(JSONArray locationsArray) throws JSONException {
+            Log.d(TAG, "location array: " + locationsArray.get(0));
             List<LocationModel> locations = parseLocations(locationsArray);
             if (callback != null) {
                 callback.onLocationsReceived(locations);
@@ -531,65 +575,36 @@ public class Becomap {
             }
         }
         private void handleHappenings(JSONArray payload) {
-            List<BCHappenings> happeningsList = new ArrayList<>();
-            for (int i = 0; i < payload.length(); i++) {
-                try {
-                    JSONObject obj = payload.getJSONObject(i);
-                    BCHappenings happening = parseHappeningFromJson(obj);
-                    happeningsList.add(happening);
-                } catch (JSONException e) {
-                    Log.e(TAG, "Error parsing happening at index " + i, e);
-                }
-            }
+            try {
+                List<BCHappenings> happenings = new ArrayList<>();
+                Gson gson = new Gson();
 
-            // Do something with the list of BCHappenings
-            Log.d(TAG, "Parsed " + happeningsList.size() + " happenings");
+                for (int i = 0; i < payload.length(); i++) {
+                    JSONObject obj = payload.getJSONObject(i);
+                    BCHappenings happening = gson.fromJson(obj.toString(), BCHappenings.class);
+                    happenings.add(happening);
+                }
+
+                // Example: Log the happenings names and their speakers
+                for (BCHappenings h : happenings) {
+                    Log.d(TAG, "Event: " + h.getName());
+                    if (h.getCustomFields() != null && h.getCustomFields().getSpeaker() != null) {
+                        for (SpeakerField.Speaker speaker : h.getCustomFields().getSpeaker().getSpeakers()) {
+                            Log.d(TAG, "Speaker: " + speaker.getName() + ", Role: " + speaker.getRole());
+                        }
+                    }
+                }
+
+                if (callback != null) {
+                    callback.onGetHappening(happenings);
+                }
+
+            } catch (JSONException e) {
+                Log.e(TAG, "Error parsing happenings payload", e);
+            }
         }
 
         // Parsing Methods
-        private BCHappenings parseHappeningFromJson(JSONObject obj) throws JSONException {
-            BCHappenings happening = new BCHappenings();
-
-            happening.setId(obj.optString("id"));
-            happening.setName(obj.optString("name"));
-            happening.setDescription(obj.optString("description"));
-            happening.setStartDate(obj.optString("startDate"));
-            happening.setEndDate(obj.optString("endDate"));
-            happening.setShowDate(obj.optString("showDate"));
-            happening.setExternalId(obj.optString("externalId"));
-            happening.setSiteId(obj.optString("siteId"));
-            happening.setLocationId(obj.optString("locationId"));
-
-            JSONArray imagesArray = obj.optJSONArray("images");
-            List<String> images = new ArrayList<>();
-            if (imagesArray != null) {
-                for (int j = 0; j < imagesArray.length(); j++) {
-                    images.add(imagesArray.optString(j));
-                }
-            }
-            happening.setImages(images);
-
-            // Parse enum type safely
-            String typeStr = obj.optString("type");
-            BCHappeningType type = BCHappeningType.fromValue(typeStr);
-            happening.setType(type);
-
-            happening.setPriority(obj.optInt("priority"));
-
-            // Parse customFields
-            JSONObject customFieldsJson = obj.optJSONObject("customFields");
-            if (customFieldsJson != null) {
-                Map<String, Object> customFields = new HashMap<>();
-                Iterator<String> keys = customFieldsJson.keys();
-                while (keys.hasNext()) {
-                    String key = keys.next();
-                    customFields.put(key, customFieldsJson.opt(key));
-                }
-                happening.setCustomFields(customFields);
-            }
-
-            return happening;
-        }
 
         private List<LocationModel> parseLocations(JSONArray locationsArray) throws JSONException {
             List<LocationModel> locations = new ArrayList<>();
@@ -829,5 +844,7 @@ public class Becomap {
         void onFloors_Received(List<FloorModel> floors);
 
         void ongetroute(List<Route> routeList);
+
+        void onGetHappening(List<BCHappenings> happenings);
     }
 }

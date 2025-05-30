@@ -6,6 +6,10 @@ import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
 
+import com.becomap.sdk.model.LocationModel;
+import com.becomap.sdk.model.ViewPort;
+import com.google.gson.Gson;
+
 import org.json.JSONObject;
 
 import java.util.List;
@@ -274,6 +278,127 @@ public class BecoWebInterface {
 
         // Triggers JavaScript function in the WebView
         webView.evaluateJavascript("javascript:clearAllRoutes()", null);
+    }
+    public void selectAmenities(WebView webView, String type) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute selectAmenities");
+            return;
+        }
+        Log.e( "selectAmenities: ", "called");
+        String jsCall = String.format("javascript:selectAmenities('%s')", type);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+    public void focusTo(WebView webView, LocationModel location, int zoom, int bearing, int pitch) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute focusTo");
+            return;
+        }
+        Log.e(TAG, "focusTo: called");
+
+        // Convert LocationModel to JSON
+        Gson gson = new Gson();
+        String locationJson = gson.toJson(location);
+
+        // Construct the JavaScript call
+        String jsCall = String.format("javascript:focusTo('%s', %d, %d, %d)", locationJson, zoom, bearing, pitch);
+
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+    public void clearSelection(WebView webView) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot inject clearSelection");
+            return;
+        }
+
+        // Triggers JavaScript function in the WebView
+        webView.evaluateJavascript("javascript:clearSelection()", null);
+    }
+
+    public void updateZoom(WebView webView, int zoom) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute updateZoom");
+            return;
+        }
+
+        String jsCall = String.format("javascript:updateZoom(%d)", zoom);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+    public void updatePitch(WebView webView, int pitch) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute updatePitch");
+            return;
+        }
+
+        String jsCall = String.format("javascript:updatePitch(%d)", pitch);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+    public void updateBearing(WebView webView, int bearing) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute updateBearing");
+            return;
+        }
+        String jsCall = String.format("javascript:updateBearing(%d)", bearing);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+    public void enableMultiSelection(WebView webView, boolean val) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute enableMultiSelection");
+            return;
+        }
+        String jsCall = String.format("javascript:enableMultiSelection('%b')", val);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+    public void setBounds(WebView webView, double[] sw, double[] ne) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute setBounds");
+            return;
+        }
+
+        if (sw == null || ne == null || sw.length != 2 || ne.length != 2) {
+            Log.e(TAG, "Invalid bounds");
+            return;
+        }
+
+        // Format the arrays as JS arrays
+        String swArray = String.format("[%f, %f]", sw[0], sw[1]);
+        String neArray = String.format("[%f, %f]", ne[0], ne[1]);
+
+        String jsCall = String.format("javascript:setBounds('%s', '%s')", swArray, neArray);
+
+        Log.d(TAG, "Executing JS: " + jsCall);
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+    public void setViewport(WebView webView, ViewPort viewPort) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute setViewport");
+            return;
+        }
+        Log.e(TAG, "setViewport: called");
+
+        // Convert LocationModel to JSON
+        Gson gson = new Gson();
+        String Vieport_json = gson.toJson(viewPort);
+
+        // Construct the JavaScript call
+        String jsCall = String.format("javascript:setViewport('%s')", Vieport_json);
+
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
+    }
+    public void resetDefaultViewport(WebView webView, ViewPort viewPort) {
+        if (webView == null) {
+            Log.e(TAG, "WebView is null, cannot execute resetDefaultViewport");
+            return;
+        }
+        Log.e(TAG, "resetDefaultViewport: called");
+
+        // Convert LocationModel to JSON
+        Gson gson = new Gson();
+        String Viewport_json = gson.toJson(viewPort);
+
+        // Construct the JavaScript call
+        String jsCall = String.format("javascript:resetDefaultViewport('%s')", Viewport_json);
+
+        webView.post(() -> webView.evaluateJavascript(jsCall, null));
     }
     private String escapeJsString(String input) {
         if (input == null) return "";

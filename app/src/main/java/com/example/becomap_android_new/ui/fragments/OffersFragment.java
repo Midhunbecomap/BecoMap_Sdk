@@ -11,11 +11,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.becomap.sdk.UI.Becomap;
+import com.becomap.sdk.model.BCHappenings;
 import com.becomap.sdk.model.BuildingsModels.BuildingModel;
 import com.becomap.sdk.model.BuildingsModels.FloorModel;
 import com.becomap.sdk.model.Category;
@@ -26,6 +30,7 @@ import com.becomap.sdk.model.Route;
 import com.becomap.sdk.model.SearchResult;
 import com.bumptech.glide.Glide;
 import com.example.becomap_android_new.R;
+import com.example.becomap_android_new.adapter.Events_Adapter;
 import com.example.becomap_android_new.adapter.StoreAdapter;
 
 import java.util.ArrayList;
@@ -35,6 +40,8 @@ public class OffersFragment extends Fragment {
     private Becomap becomap;
     FrameLayout mapContainer;
     ImageView progressBar;
+
+    CardView nodata;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -45,6 +52,7 @@ public class OffersFragment extends Fragment {
     private void initializeViews(View root) {
         mapContainer = root.findViewById(R.id.map_container_store);
         progressBar=root.findViewById(R.id.progressbar);
+        nodata=root.findViewById(R.id.nodata);
         Glide.with(this)
                 .asGif()
                 .load(R.drawable.becomaploader) // your loading.gif in res/raw
@@ -57,9 +65,9 @@ public class OffersFragment extends Fragment {
         becomap = new Becomap(requireContext());
 
         // Initialize map with WebView
-        becomap.initializeMap(mapContainer, "c079dfa3a77dad13351cfacd95841c2c2780fe08",
-                "f62a59675b2a47ddb75f1f994d88e653",
-                "67dcf5dd2f21c64e3225254f");
+        becomap.initializeMap(mapContainer, "7a2f9d3c85b14eef6670c20458e607d912314b76",
+                "3f9c27d4b68ea52a7c1d5e034f8b6a1",
+                "67b481f2b253dc2bccb426f2");
 
         setupBecomapCallback();
     }
@@ -68,29 +76,30 @@ public class OffersFragment extends Fragment {
             @Override
             public void onMapRenderComplete() {
                 Log.e( "onMapRenderComplete: ","complete" );
-                becomap.getlocation();
+                becomap.GetHappenings("OFFER");
             }
 
             @Override
             public void onLocationsReceived(List<LocationModel> locations) {
-                getActivity().runOnUiThread(() -> {
-                    List<LocationModel> tenantStores = new ArrayList<>();
-                    for (LocationModel location : locations) {
-                        if ("AMENITIES".equalsIgnoreCase(location.getType())) {
-                            tenantStores.add(location);
-                        }
-                    }
-                    Log.e("onLocationsReceived: ", "setting");
-                    GridView storeGridView = getView().findViewById(R.id.storeGridView);
-                    StoreAdapter adapter = new StoreAdapter(getContext(), tenantStores, new StoreAdapter.OnStoreClickListener() {
-                        @Override
-                        public void onStoreClick(LocationModel location) {
-                            openMapFragmentWithLocation(location); // <-- your custom method
-                        }
-                    });
-                    storeGridView.setAdapter(adapter);
-                    progressBar.setVisibility(View.GONE);
-                });
+//                getActivity().runOnUiThread(() -> {
+//                    List<LocationModel> tenantStores = new ArrayList<>();
+//                    for (LocationModel location : locations) {
+//                        if ("AMENITIES".equalsIgnoreCase(location.getType())) {
+//                            tenantStores.add(location);
+//                        }
+//                    }
+//                    Log.e("onLocationsReceived: ", "setting");
+//                    RecyclerView storeGridView = getView().findViewById(R.id.storeGridView);
+//                    storeGridView.setLayoutManager(new LinearLayoutManager(getContext())); // 2 columns
+//                    StoreAdapter adapter = new StoreAdapter(getContext(), tenantStores, new StoreAdapter.OnStoreClickListener() {
+//                        @Override
+//                        public void onStoreClick(LocationModel location) {
+//                            openMapFragmentWithLocation(location);
+//                        }
+//                    });
+//                    storeGridView.setAdapter(adapter);
+//                    progressBar.setVisibility(View.GONE);
+//                });
             }
 
             @Override
@@ -163,12 +172,32 @@ public class OffersFragment extends Fragment {
             public void ongetroute(List<Route> routeList) {
 
             }
+
+            @Override
+            public void onGetHappening(List<BCHappenings> happenings) {
+                getActivity().runOnUiThread(() -> {
+                    if (happenings.equals(null) || happenings.isEmpty()) {
+                        nodata.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
+                    }else {
+                        RecyclerView storeGridView = getView().findViewById(R.id.storeGridView);
+                        storeGridView.setLayoutManager(new LinearLayoutManager(getContext())); // 2 columns
+                        Events_Adapter adapter = new Events_Adapter(getContext(), happenings, new Events_Adapter.OnStoreClickListener() {
+                            @Override
+                            public void onStoreClick(String locationid) {
+                                openMapFragmentWithLocation(locationid);
+                            }
+                        });
+                        storeGridView.setAdapter(adapter);
+                        progressBar.setVisibility(View.GONE);
+                    }
+                });
+            }
         });
     }
-    private void openMapFragmentWithLocation(LocationModel locationa) {
-        // your selected location
+    private void openMapFragmentWithLocation(String locationa) {
         Bundle bundle = new Bundle();
-        bundle.putSerializable("location", locationa); // or use Parcelable if needed
+        bundle.putString("locationName", locationa);  // use putString for Strings
 
         NavController navController = NavHostFragment.findNavController(OffersFragment.this);
         navController.navigate(R.id.navigation_map, bundle);
