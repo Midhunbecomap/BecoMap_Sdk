@@ -3,14 +3,17 @@
     android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:padding="2dp"
+    android:paddingStart="5dp"
+    android:paddingTop="2dp"
+    android:paddingEnd="2dp"
     android:layout_height="wrap_content">
 
     <ImageView
         android:layout_width="14dp"
         android:layout_height="14dp"
         android:layout_gravity="center"
-        android:src="@drawable/outline_circle_24"/>
+        android:src="@drawable/outline_circle_24"
+        />
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:hint="Stop"
-            android:textColorHint="#959494"
+            android:textColorHint="@color/text_grey"
             android:textColor="@color/black"
             android:fontFamily="@font/inter"
             android:layout_weight="0.6"

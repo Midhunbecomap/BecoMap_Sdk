@@ -291,7 +291,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="2dp">
+                    android:paddingStart="5dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="2dp">
 
                     <ImageView
                         android:layout_width="14dp"
@@ -326,7 +328,7 @@
                                 android:padding="10dp"
                                 android:singleLine="true"
                                 android:textColor="@color/black"
-                                android:textColorHint="#959494"
+                                android:textColorHint="@color/text_grey"
                                 android:textSize="15dp" />
 
                             <ImageView
@@ -352,7 +354,10 @@
                     android:id="@+id/toLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:paddingStart="5dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="2dp">
 
                     <ImageView
                         android:layout_width="14dp"
@@ -387,7 +392,7 @@
                                 android:padding="10dp"
                                 android:singleLine="true"
                                 android:textColor="@color/black"
-                                android:textColorHint="#959494"
+                                android:textColorHint="@color/text_grey"
                                 android:textSize="15dp" />
 
                             <ImageView

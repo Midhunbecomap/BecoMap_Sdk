@@ -114,7 +114,7 @@ public class MapFragment extends Fragment {
     ImageView default_icon,escalator,left,lift,right,slight_left,slight_right,stright,stair;
     TextView distance_text,direction_text,estimated_time,estimated_time_start,estimated_distance_start;
     ImageView close_fromto_layout;
-    LocationModel storelocation;
+    LocationModel storelocation=null;
     String Event_location="";
     List<LocationModel> getalllocation;
 
@@ -125,13 +125,18 @@ public class MapFragment extends Fragment {
         if (getArguments() != null) {
             Bundle args = getArguments();
 
-            if (args.containsKey("location")) {
-                storelocation = (LocationModel) args.getSerializable("location");
-            } else if (args.containsKey("locationName")) {
-                Event_location = args.getString("locationName");
-            }
+//            if (args.containsKey("location")) {
+//                storelocation = (LocationModel) args.getSerializable("location");
+            Event_location = args.getString("locationName");
+                getArguments().clear();
+//            } else if (args.containsKey("locationName")) {
+//                Event_location = args.getString("locationName");
+//                getArguments().clear();
+//            }else {
+//                getArguments().clear();
+//            }
 
-            getArguments().clear(); // Clear after using all keys
+
         }
 
         initializeViews(root);
@@ -222,6 +227,7 @@ public class MapFragment extends Fragment {
                 isProgrammaticChange=false;
                 getActivity().runOnUiThread(() -> {
                     becomap.clearallroutes();
+                    Log.e( "becomap angry", "clearallroutes");
                 });
             }
         });
@@ -236,6 +242,7 @@ public class MapFragment extends Fragment {
                 end_button.setVisibility(View.VISIBLE);
                 direction_layout.setVisibility(View.VISIBLE);
                 becomap.showStep(0);
+                Log.e( "becomap angry ", "showstep 0");
             }
         });
         end_button.setOnClickListener(new View.OnClickListener() {
@@ -248,6 +255,7 @@ public class MapFragment extends Fragment {
                 end_button.setVisibility(View.GONE);
                 getActivity().runOnUiThread(() -> {
                     becomap.showStep(0);
+                    Log.e( "becomap angry ", "showstep 0");
                     current_index=0;
 //                    becomap.clearallroutes();
                 });
@@ -267,6 +275,7 @@ public class MapFragment extends Fragment {
                     stright.setVisibility(View.GONE);
                     stair.setVisibility(View.GONE);
                     becomap.showStep(current_index);
+                    Log.e( "becomap angry ", "showstep "+currentStep+"");
 
                     // Create toast message
                     String action = currentStep.getAction();
@@ -335,6 +344,7 @@ public class MapFragment extends Fragment {
 
                     Step currentStep = allSteps.get(current_index);
                     becomap.showStep(current_index);
+                    Log.e( "becomap angry ", "showstep "+currentStep+"");
 
                     // Hide all direction icons first
                     default_icon.setVisibility(View.GONE);
@@ -416,6 +426,7 @@ public class MapFragment extends Fragment {
         becomap.initializeMap(mapContainer, "7a2f9d3c85b14eef6670c20458e607d912314b76",
                 "3f9c27d4b68ea52a7c1d5e034f8b6a1",
                 "67b481f2b253dc2bccb426f2");
+        Log.e( "becomap angry ", "initializeMap ");
 
         setupBecomapCallback();
     }
@@ -444,20 +455,11 @@ public class MapFragment extends Fragment {
             @Override
             public void onMapRenderComplete() {
                 becomap.getlocation();
-                if (storelocation != null ) {
-                    getActivity().runOnUiThread(() -> {
-                        floor.setVisibility(View.GONE);
-                        SearchResult result = convertLocationToSearchResult(storelocation);
-                        becomap.selectLocationWithId(result.getId());
-                        setupBottomSheet();
-                        showLocationBottomSheet(result);
-                        progressBar.setVisibility(View.GONE);
-                    });
-                } else {
+                Log.e( "becomap angry ", "getlocation ");
                     becomap.getFloors();
+                    Log.e( "becomap angry ", "getFloors ");
                     progressBar.setVisibility(View.GONE);
                     searchEditText_layout.setVisibility(View.VISIBLE);
-                }
 
             }
             @Override
@@ -466,31 +468,32 @@ public class MapFragment extends Fragment {
                     Log.e("onFloors_Received", "Received null or empty floor list");
                     return;
                 }
+                    getActivity().runOnUiThread(() -> {
 
-                Log.e("onFloors_Received: ", floors.get(0).shortName);
-                getActivity().runOnUiThread(() -> {
-
-                List<String> shortNames = new ArrayList<>();
-                for (FloorModel floor : floors) {
-                    shortNames.add(floor.getShortName());
-                }
-                    floor.setText(shortNames.get(0));
-
-                floor.setVisibility(View.VISIBLE);
-                    adapter = new FloorAdapter(getActivity(), floors, new FloorAdapter.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(FloorModel floorModel) {
-                            // Get the details of the item here
-                            String floorName = floorModel.getShortName();
-                            becomap.selectFloor(floorModel.id);
-                            floor.setText(floorName);
-                            floorRecycler.setVisibility(View.GONE);
-                            // Do something with the floorName
+                        List<String> shortNames = new ArrayList<>();
+                        for (FloorModel floor : floors) {
+                            shortNames.add(floor.getShortName());
                         }
+                        floor.setText(shortNames.get(0));
+
+                        floor.setVisibility(View.VISIBLE);
+                        adapter = new FloorAdapter(getActivity(), floors, new FloorAdapter.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(FloorModel floorModel) {
+                                // Get the details of the item here
+                                String floorName = floorModel.getShortName();
+                                becomap.selectFloor(floorModel.id);
+                                Log.e( "becomap angry ", "selectFloor "+floorModel.id);
+                                Log.e( "selectFloor: ", "1");
+                                floor.setText(floorName);
+                                floorRecycler.setVisibility(View.GONE);
+                                // Do something with the floorName
+                            }
+                        });
+
+                        floorRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+                        floorRecycler.setAdapter(adapter);
                     });
-                    floorRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-                    floorRecycler.setAdapter(adapter);
-                });
             }
 
             @Override
@@ -513,6 +516,8 @@ public class MapFragment extends Fragment {
                 Log.e( "ongetroute: ", String.valueOf(routeList.get(0).getSteps().size()));
                 getActivity().runOnUiThread(() -> {
                 becomap.showroute();
+                    Log.e( "becomap angry ", "showroute ");
+
                     Start_layout.setVisibility(View.VISIBLE);
 
             });
@@ -561,6 +566,29 @@ public class MapFragment extends Fragment {
             @Override
             public void onLocationsReceived(List<LocationModel> locations) {
                 getalllocation=locations;
+                if (!Event_location .equals("") ) {
+                    getActivity().runOnUiThread(() -> {
+                        floor.setVisibility(View.GONE);
+                        searchEditText_layout.setVisibility(View.GONE);
+                        if (getalllocation != null && !getalllocation.isEmpty()) {
+                            for (int i = 0; i < getalllocation.size(); i++) {
+                                if (getalllocation.get(i).getId().equals(Event_location)) {
+                                    storelocation = getalllocation.get(i);
+                                    break; // Exit the loop once match is found
+                                }
+                            }
+                            SearchResult result = convertLocationToSearchResult(storelocation);
+                            becomap.selectLocationWithId(result.getId());
+                            getActivity().runOnUiThread(() -> {
+                                becomap.selectLocationWithId(result.getId());
+                            });
+                            Log.e("becomap angry ", "selectLocationWithId " + result.getId());
+                            setupBottomSheet();
+                            showLocationBottomSheet(result);
+                        }
+                        progressBar.setVisibility(View.GONE);
+                    });
+                }
             }
 
             @Override
@@ -649,6 +677,7 @@ public class MapFragment extends Fragment {
             Log.e( "locationtext_search: 2","gone" );
             floor.setVisibility(View.GONE);
             becomap.selectLocationWithId(location.getId());
+            Log.e( "becomap angry ", "selectLocationWithId 2"+location.getId());
             setupBottomSheet();
             showLocationBottomSheet(location);
         });
@@ -775,6 +804,8 @@ public class MapFragment extends Fragment {
             if (location != null) {
 
                 becomap.selectLocationWithId(location.getId());
+                Log.e( "becomap angry ", "selectLocationWithId 2=3"+location.getId());
+
                 locationsText.setVisibility(View.GONE);
                 if (isDuplicateEntry(location.getId())){
                     Toast.makeText(requireContext(), "You selected duplicate entry", Toast.LENGTH_SHORT).show();
@@ -810,6 +841,8 @@ public class MapFragment extends Fragment {
                     if (!startid.isEmpty() && !startid.equals("") && !toid.isEmpty() && !toid.equals(""))
                     {
                         becomap.getroute(startid,toid,null);
+                        Log.e( "becomap angry ", "getroute");
+
                     }
                     Log.e( "angry bird 3 ",String.valueOf(startid) );
                 } else if (currentSelectedField == toEditText) {
@@ -829,6 +862,7 @@ public class MapFragment extends Fragment {
                              !waypoints.isEmpty() && !waypoints.equals(null))
                     {
                         becomap.getroute(startid,toid,waypoints);
+                        Log.e( "becomap angry ", "getroute 1");
                     }
                     // Handle stop field selection
                     currentSelectedField.setText(location.getName() );
@@ -847,6 +881,7 @@ public class MapFragment extends Fragment {
                 currentSelectedField = searchEditText;
                 most_popular_text.setVisibility(View.VISIBLE);
                 becomap.searchLocation(""); // Trigger empty search on focus
+                Log.e( "becomap angry ", "searchLocation 0");
 
             }
         });
@@ -874,6 +909,7 @@ public class MapFragment extends Fragment {
                     locationtext_search.setVisibility(View.VISIBLE);
                     Log.e( "locationtext_search: 1","Visible" );
                     becomap.searchLocation(query); // Or debounce this if needed
+                    Log.e( "becomap angry ", "searchLocation 1");
                 }
             }
 
@@ -899,6 +935,7 @@ public class MapFragment extends Fragment {
 
                 if (!query.isEmpty()) {
                     becomap.searchLocation(query);
+                    Log.e( "becomap angry ", "searchLocation 2");
                 }
 
                 locationsText.setVisibility(View.VISIBLE);
@@ -926,6 +963,7 @@ public class MapFragment extends Fragment {
 
                 if (!query.isEmpty()) {
                     becomap.searchLocation(query);
+                    Log.e( "becomap angry ", "searchLocation 3");
                 }
 
                 locationsText.setVisibility(View.VISIBLE);
@@ -1003,6 +1041,7 @@ public class MapFragment extends Fragment {
                     currentSelectedField = stopEditText;
                     if (!query.isEmpty()) {
                         becomap.searchLocation(query);
+                        Log.e( "becomap ", "searchLocation 4");
                         locationsText.setVisibility(View.VISIBLE);
                     }
                 }

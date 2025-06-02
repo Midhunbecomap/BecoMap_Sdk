@@ -117,7 +117,7 @@ public class StoreFragment extends Fragment {
                         StoreAdapter adapter = new StoreAdapter(getContext(), tenantStores, new StoreAdapter.OnStoreClickListener() {
                             @Override
                             public void onStoreClick(LocationModel location) {
-                                openMapFragmentWithLocation(location);
+                                openMapFragmentWithLocation(location.getId());
                             }
                         });
                         storeGridView.setAdapter(adapter);
@@ -203,10 +203,9 @@ public class StoreFragment extends Fragment {
             }
         });
     }
-    private void openMapFragmentWithLocation(LocationModel locationa) {
-        // your selected location
+    private void openMapFragmentWithLocation(String locationa) {
         Bundle bundle = new Bundle();
-        bundle.putSerializable("location", locationa); // or use Parcelable if needed
+        bundle.putString("locationName", locationa);  // use putString for Strings
 
         NavController navController = NavHostFragment.findNavController(StoreFragment.this);
         navController.navigate(R.id.navigation_map, bundle);
