@@ -14,6 +14,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:visibility="visible" />
+
     <FrameLayout
         android:id="@+id/map_container_store"
         android:layout_width="0dp"
