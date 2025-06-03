@@ -44,15 +44,15 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.10.1'
 }
-afterEvaluate {
-    publishing {
-        publications {
-            create("release", MavenPublication) {
-                groupId = 'com.github.Midhunbecomap'
-                artifactId = 'BecoMap_Sdk'
-                version = '1.0.3'
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.Midhunbecomap'
+            artifactId = 'BecoMap_Sdk'
+            version = '1.0.4' // Update this for each release
 
-                from components.release
+            afterEvaluate {
+                from components.findByName("release")
             }
         }
     }
