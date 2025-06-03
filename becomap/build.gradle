@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
-    id 'com.google.protobuf' version '0.9.4'
+//    id 'com.google.protobuf' version '0.9.4'
+    id 'maven-publish'
 }
 
 android {
@@ -43,15 +44,34 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.10.1'
 }
-protobuf {
-    protoc {
-        artifact = 'com.google.protobuf:protoc:3.19.1'
-    }
-    generateProtoTasks {
-        all().each { task ->
-            task.builtins {
-                java { }
+afterEvaluate {
+    publishing {
+        publications {
+            create("release", MavenPublication) {
+                groupId = 'com.github.Midhunbecomap'
+                artifactId = 'BecoMap_Sdk'
+                version = '1.0.0'
+
+                def releaseVariant = android.libraryVariants.find { it.name == "release" }
+                if (releaseVariant == null) {
+                    throw new GradleException("Release variant not found")
+                }
+                artifact releaseVariant.outputs.first().outputFile
+
+                // If you want to add pom or metadata, you can add here
             }
         }
     }
 }
+//protobuf {
+//    protoc {
+//        artifact = 'com.google.protobuf:protoc:3.19.1'
+//    }
+//    generateProtoTasks {
+//        all().each { task ->
+//            task.builtins {
+//                java { }
+//            }
+//        }
+//    }
+//}
