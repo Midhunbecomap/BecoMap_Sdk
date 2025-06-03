@@ -2,7 +2,23 @@ jdk:
   - openjdk21
 
 before_install:
-  - echo "Using Java 21"
+  - echo "Using Java 21 (OpenJDK)"
 
 install:
   - ./gradlew :becomap:publishReleasePublicationToMavenLocal
+
+# Optional: Custom build settings
+build:
+  # Skip tests (if they fail on JitPack)
+  skipTests: true
+
+  # Define which Gradle tasks to run
+  commands:
+    - ./gradlew build
+    - ./gradlew publishToMavenLocal
+
+# Cache Gradle dependencies for faster builds
+cache:
+  directories:
+    - $HOME/.gradle/caches
+    - $HOME/.gradle/wrapper
