@@ -1,5 +1,8 @@
 jdk:
-  -openjdk21
+  - openjdk21
+
 before_install:
-  -sdk install java 21.0.6-open
-  -sdk use java 21.0.6-open
+  - echo "Using Java 21"
+
+install:
+  - ./gradlew :becomap:publishReleasePublicationToMavenLocal

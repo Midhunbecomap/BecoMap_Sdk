@@ -50,9 +50,9 @@ afterEvaluate {
             create("release", MavenPublication) {
                 groupId = 'com.github.Midhunbecomap'
                 artifactId = 'BecoMap_Sdk'
-                version = '1.0.0'
+                version = '1.0.3'
 
-                from components.findByName("release")
+                from components.release
             }
         }
     }
