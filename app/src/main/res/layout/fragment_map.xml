@@ -720,7 +720,7 @@
                 android:id="@+id/banner"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
-                android:src="@drawable/maplibre_logo_icon"
+                android:src="@drawable/ic_launcher_background"
                 />
 
             </androidx.cardview.widget.CardView>
