@@ -5,6 +5,7 @@ import static androidx.core.content.ContextCompat.getSystemService;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
@@ -47,6 +48,7 @@ import com.example.becomap_android_new.adapter.LocationAdapter;
 import com.example.becomap_android_new.adapter.SearchResultAdapter;
 import com.example.becomap_android_new.model.Location;
 import com.example.becomap_android_new.model.Store;
+import com.example.becomap_android_new.model.Waypoint;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -55,6 +57,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class MapFragment extends Fragment {
@@ -91,7 +94,7 @@ public class MapFragment extends Fragment {
     private CategoryAdapter categoryAdapter;
     String startid="";
     String toid="";
-    List<String> waypoints=new ArrayList<>();
+    List<Waypoint> waypoints = new ArrayList<>();
     ImageButton go;
     ImageButton stepback;
     int Total_index=0;
@@ -234,6 +237,7 @@ public class MapFragment extends Fragment {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                getActivity().runOnUiThread(() -> {
                 step_direction_layout.setVisibility(View.VISIBLE);
                 go.setVisibility(View.VISIBLE);
                 stepback.setVisibility(View.VISIBLE);
@@ -243,6 +247,7 @@ public class MapFragment extends Fragment {
                 direction_layout.setVisibility(View.VISIBLE);
                 becomap.showStep(0);
                 Log.e( "becomap angry ", "showstep 0");
+            });
             }
         });
         end_button.setOnClickListener(new View.OnClickListener() {
@@ -498,6 +503,7 @@ public class MapFragment extends Fragment {
 
             @Override
             public void ongetroute(List<Route> routeList) {
+                getActivity().runOnUiThread(() -> {
                 double distance =routeList.get(0).getDistance() ;
                 int timeInSeconds = WalkingTimeCalculator.calculateWalkingTimeInSeconds(distance);
                 String formattedTime = WalkingTimeCalculator.formatTime(timeInSeconds);
@@ -514,7 +520,7 @@ public class MapFragment extends Fragment {
                 current_index = 0;
                 Log.e("ongetroute: ", String.valueOf(routeList.get(0).getDistance()));
                 Log.e( "ongetroute: ", String.valueOf(routeList.get(0).getSteps().size()));
-                getActivity().runOnUiThread(() -> {
+
                 becomap.showroute();
                     Log.e( "becomap angry ", "showroute ");
 
@@ -852,20 +858,22 @@ public class MapFragment extends Fragment {
                         imm.hideSoftInputFromWindow(toEditText.getWindowToken(), 0);
                     }
                 } else {
+                    // It's a stop field
+                    Waypoint wp = new Waypoint(location.getId(), location.getName());
                     View parent = (View) currentSelectedField.getParent().getParent();
                     if (parent != null) {
-                        parent.setTag(location.getId());
+                        parent.setTag(wp);
                     }
-                    waypoints.add(location.getId());
-                    if (!startid.isEmpty() && !startid.equals("")
-                            && !toid.isEmpty() && !toid.equals("") &&
-                             !waypoints.isEmpty() && !waypoints.equals(null))
-                    {
-                        becomap.getroute(startid,toid,waypoints);
-                        Log.e( "becomap angry ", "getroute 1");
+                    currentSelectedField.setText(location.getName());
+                    waypoints.add(wp);
+
+                    if (!startid.isEmpty() && !toid.isEmpty() && !waypoints.isEmpty()) {
+                        List<String> waypointIds = new ArrayList<>();
+                        for (Waypoint w : waypoints) {
+                            waypointIds.add(w.getId());
+                        }
+                        becomap.getroute(startid, toid, waypointIds);
                     }
-                    // Handle stop field selection
-                    currentSelectedField.setText(location.getName() );
                 }
                 locationsRecyclerView.setVisibility(View.GONE);
                 locationsText.setVisibility(View.GONE);
@@ -1029,9 +1037,7 @@ public class MapFragment extends Fragment {
 
             stopEditText.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                    // No-op
-                }
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -1041,15 +1047,13 @@ public class MapFragment extends Fragment {
                     currentSelectedField = stopEditText;
                     if (!query.isEmpty()) {
                         becomap.searchLocation(query);
-                        Log.e( "becomap ", "searchLocation 4");
+                        Log.e("becomap", "searchLocation from stop");
                         locationsText.setVisibility(View.VISIBLE);
                     }
                 }
 
                 @Override
-                public void afterTextChanged(Editable s) {
-                    // Optional
-                }
+                public void afterTextChanged(Editable s) {}
             });
         }
 
@@ -1058,16 +1062,41 @@ public class MapFragment extends Fragment {
             locationsText.setVisibility(View.GONE);
             currentSelectedField = null;
             isProgrammaticChange = true;
+
             Object tag = stopFieldView.getTag();
-            if (tag != null && waypoints.contains(tag.toString())) {
-                waypoints.remove(tag.toString());
+            Log.e( "waypoints: ", String.valueOf(waypoints.size()));
+            String stopText = stopEditText.getText().toString();
+            if (!stopText.isEmpty()) {
+                // Remove waypoint from waypoints list by matching name or id
+                Iterator<Waypoint> iterator = waypoints.iterator();
+                while (iterator.hasNext()) {
+                    Waypoint w = iterator.next();
+                    // Assuming you want to match by name (or you can match by ID if you have it)
+                    if (stopText.equals(w.getName()) || stopText.equals(w.getId())) {
+                        iterator.remove();
+                        break;  // Stop after removing the first match
+                    }
+                }
             }
+
+            // After removing the waypoint, update the route if needed
+            if (!startid.isEmpty() && !toid.isEmpty()) {
+                if (!waypoints.isEmpty()) {
+                    List<String> waypointIds = new ArrayList<>();
+                    for (Waypoint w : waypoints) {
+                        waypointIds.add(w.getId());
+                    }
+                    becomap.getroute(startid, toid, waypointIds);
+                } else {
+                    becomap.getroute(startid, toid, null);
+                }
+            }
+            Log.e("addStopField: ", stopEditText.getText().toString());
             stopsContainer.removeView(stopFieldView);
             isProgrammaticChange = false;
             checkAndShowSearchField();
         });
 
-        // Optional: Add margin
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -1076,6 +1105,7 @@ public class MapFragment extends Fragment {
 
         stopsContainer.addView(stopFieldView);
     }
+
 
     private void showsearchList(List<SearchResult> searchResult) {
         if (searchResult != null && !searchResult.isEmpty()) {
@@ -1122,8 +1152,8 @@ public class MapFragment extends Fragment {
         }
 
         if (waypoints != null && !waypoints.isEmpty()) {
-            for (String waypoint : waypoints) {
-                if (id.equals(waypoint)) {
+            for (Waypoint waypoint : waypoints) {
+                if (id.equals(waypoint.getId())) {
                     return true;
                 }
             }

@@ -1,0 +1,120 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Becomap UMD SDK</title><style>body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    #mapContainer {
+      width: 100%;
+      height: 100%;
+    }</style></head><body><div id="mapContainer"></div><script src="https://unpkg.com/maplibre-gl@4.4.1/dist/maplibre-gl.js"></script><script src="https://unpkg.com/@turf/turf@7.1.0/turf.min.js"></script><script>window._mapView = null;
+    window._site = null;
+
+    function notifyNative(type, payload = null) {
+      const message = JSON.stringify({ type, payload });
+
+      if (window.webkit?.messageHandlers?.jsHandler) {
+        // iOS
+        window.webkit.messageHandlers.jsHandler.postMessage(message);
+      } else if (window.jsHandler?.postMessage) {
+        // Android
+        window.jsHandler.postMessage(message);
+      } else {
+        console.log("Native handler not available:", message);
+      }
+    }
+
+    async function init(siteOptions) {
+      try {
+        const container = document.getElementById('mapContainer');
+        if (!window.becomap?.getSite || !window.becomap?.getMapView) {
+          console.error('Becomap UMD not loaded');
+          return;
+        }
+        const mapOptions = { zoom: 18.5 };
+        window._site = await window.becomap.getSite(siteOptions);
+        window._mapView = await window.becomap.getMapView(container, window._site, mapOptions);
+        notifyNative("onRenderComplete", { site: window._site.toJSON() });
+      } catch (err) {
+        console.error('init error', err);
+        notifyNative("initError", { message: err.message });
+      }
+    }
+
+    globalThis.init = init;
+
+    // -------- Site Methods --------
+    globalThis.getSiteId = () => notifyNative("getSiteId", _site?.id);
+    globalThis.getSiteName = () => notifyNative("getSiteName", _site?.siteName);
+    globalThis.getBuildings = () => notifyNative("getBuildings", _site?.buildings);
+    globalThis.getDefaultFloor = () => notifyNative("getDefaultFloor", _site?.getDefaultMap());
+    globalThis.getLanguages = () => notifyNative("getLanguages", _site?.otherLanguages);
+
+    // -------- MapView Methods --------
+    globalThis.getCurrentFloor = () => notifyNative("getCurrentFloor", _mapView?.currentFloor);
+    globalThis.getCategories = () => notifyNative("getCategories", _mapView?.getCategories());
+    globalThis.getLocations = () => notifyNative("getLocations", _mapView?.getLocations());
+    globalThis.getAllAmenities = () => notifyNative("getAllAmenities", _mapView?.getAllAminityLocations());
+    globalThis.getAmenities = () => notifyNative("getAmenities", _mapView?.getAmenities());
+    globalThis.getQuestions = () => notifyNative("getQuestions", _mapView?.getQuestions());
+
+    globalThis.getSessionId = async () => {
+      try {
+        const sessionId = await _mapView?.getSessionId();
+        notifyNative("getSessionId", sessionId);
+      } catch (err) {
+        notifyNative("getSessionIdError", { message: err.message });
+      }
+    };
+
+    globalThis.getHappenings = (type) => {
+      const res = _mapView?.getHappenings(type);
+      notifyNative("getHappenings", res);
+    };
+
+    globalThis.getEventSuggestions = async (sessionId, answers) => {
+      try {
+        const res = await _mapView?.getEventSuggestions(sessionId, answers);
+        notifyNative("getEventSuggestions", res);
+      } catch (err) {
+        notifyNative("getEventSuggestionsError", { message: err.message });
+      }
+    };
+
+    globalThis.selectFloorWithId = (floor) => _mapView?.selectFloorWithId(floor);
+    globalThis.selectLocationWithId = (location) => _mapView?.selectLocationWithId(location);
+    globalThis.selectAmenities = (type) => _mapView?.selectAmenities(type);
+    globalThis.focusTo = (location, zoom, bearing, pitch) =>
+      _mapView?.focusTo(location, zoom, bearing, pitch);
+    globalThis.clearSelection = () => _mapView?.clearSelection();
+    globalThis.updateZoom = (zoom) => _mapView?.updateZoom(zoom);
+    globalThis.updatePitch = (pitch) => _mapView?.updatePitch(pitch);
+    globalThis.updateBearing = (bearing) => _mapView?.updateBearing(bearing);
+    globalThis.enableMultiSelection = (val) => _mapView?.enableMultiSelection(val);
+    globalThis.setBounds = (sw, ne) => _mapView?.setBounds(sw, ne);
+    globalThis.setViewport = (options) => _mapView?.setViewport(options);
+    globalThis.resetDefaultViewport = (options) => _mapView?.resetDefaultViewport(options);
+
+    globalThis.searchForLocations = (q, callbackId) => {
+      _mapView?.searchForLocations(q, (matches) => {
+        notifyNative("searchForLocations", { callbackId, results: matches.map(m => m.toJSON()) });
+      });
+    };
+
+    globalThis.searchForCategories = (q, callbackId) => {
+      _mapView?.searchForCategories(q, (matches) => {
+        notifyNative("searchForCategories", { callbackId, results: matches.map(m => m.toJSON()) });
+      });
+    };
+
+    // -------- RouteController Methods --------
+    globalThis.getRoute = (startID, goalID, waypoints = [], routeOptions) => {
+      const res = window.becomap.getRouteById(startID, goalID, waypoints, routeOptions);
+      notifyNative("getRoute", res.map(m => m.toJSON()));
+    };
+    globalThis.showRoute = () => _mapView?.routeController?.showSavedRoute();
+    globalThis.walkThrough = (segment) => _mapView?.routeController?.walkThrough(segment);
+    globalThis.stopWalking = () => _mapView?.routeController?.stopWalking();
+    globalThis.showStep = (step) => _mapView?.routeController?.showStepByOrderIndex(step);
+    globalThis.clearAllRoutes = () => _mapView?.routeController?.clearAllRoutes();</script><script defer="defer" src="becomap.31b2a1d96b96e51b7bc9.js"></script><script defer="defer" src="becomap.403cdfa00b8ba14711f6.js"></script><script defer="defer" src="becomap.97ec5cc18e8445235bc5.js"></script><script defer="defer" src="becomap.6cf0b7747b5d56dfc52e.js"></script><script defer="defer" src="becomap.0d1df624653b8917037a.js"></script><script defer="defer" src="becomap.78de18efd2315e404e32.js"></script><script defer="defer" src="becomap.25093344e3e04b8ce58c.js"></script><script defer="defer" src="becomap.e7d7fac535e63cb192d4.js"></script><script defer="defer" src="becomap.dd2738adfea3368b0784.js"></script><script defer="defer" src="becomap.d8532432b533e49e375b.js"></script><script defer="defer" src="becomap.b811cf1dfc1383a294e1.js"></script><script defer="defer" src="becomap.d200b2726d744fbad5b3.js"></script><script defer="defer" src="becomap.0ba05437eaabcfe6ea2d.js"></script><script defer="defer" src="becomap.4e9af42f07471113ea85.js"></script></body></html>
